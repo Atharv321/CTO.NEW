@@ -1,0 +1,10 @@
+{
+  "root": true,
+  "extends": ["prettier"],
+  "overrides": [
+    {
+      "files": ["apps/**/*", "packages/**/*"],
+      "extends": ["prettier"]
+    }
+  ]
+}
