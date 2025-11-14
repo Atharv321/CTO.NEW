@@ -1,0 +1,105 @@
+.container {
+  margin-bottom: 2rem;
+}
+
+.container h2 {
+  font-size: 1.5rem;
+  color: #2c3e50;
+  margin-bottom: 1.5rem;
+}
+
+.slotsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.75rem;
+}
+
+.slotButton {
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 1rem 0.75rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #2c3e50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.slotButton:hover {
+  border-color: #667eea;
+  background: #f5f7ff;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+}
+
+.slotButton:focus {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+}
+
+.slotButton.selected {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: #667eea;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.startTime,
+.endTime {
+  line-height: 1.2;
+}
+
+.separator {
+  font-size: 0.8rem;
+  opacity: 0.5;
+}
+
+.placeholder,
+.loading,
+.error,
+.noSlots {
+  padding: 2rem;
+  text-align: center;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.placeholder {
+  background: #f0f0f0;
+  color: #666;
+}
+
+.loading {
+  background: #e8f4f8;
+  color: #0277bd;
+}
+
+.error {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.noSlots {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 640px) {
+  .slotsGrid {
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  }
+
+  .container h2 {
+    font-size: 1.25rem;
+  }
+
+  .slotButton {
+    font-size: 0.85rem;
+    padding: 0.75rem 0.5rem;
+  }
+}
