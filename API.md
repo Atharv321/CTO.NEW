@@ -1,6 +1,31 @@
-# Inventory Scanner API Specification
+# API Specification
 
-This document describes the API support and integration points for the Inventory Barcode Scanner system.
+This document describes the API endpoints available in the system.
+
+## Admin API
+
+For barbershop booking system admin endpoints, see the [Admin API Documentation](docs/admin-api.md).
+
+The admin API provides:
+- JWT-based authentication (password + magic link)
+- Services CRUD operations
+- Barbers management
+- Availability management (recurring templates + date overrides)
+- Bookings management with filtering and pagination
+- Comprehensive validation and error handling
+
+Quick admin API endpoints:
+- **Auth**: `POST /api/auth/login`, `POST /api/auth/magic-link`
+- **Services**: `GET/POST/PUT/DELETE /api/admin/services`
+- **Barbers**: `GET/POST/PUT/DELETE /api/admin/barbers`
+- **Availability**: `/api/admin/availability/templates`, `/api/admin/availability/overrides`
+- **Bookings**: `GET /api/admin/bookings` (with filtering & pagination)
+
+---
+
+# Inventory Scanner API Specification (Legacy)
+
+This section describes the API support and integration points for the Inventory Barcode Scanner system.
 
 ## Overview
 
@@ -394,8 +419,52 @@ GET /api/v1/items/:barcode
 GET /api/v2/items/:barcode
 ```
 
+## Supplier and Purchase Order APIs
+
+The system now includes comprehensive supplier management and purchase order capabilities.
+
+### Quick Start
+
+```typescript
+// Fetch suppliers
+const suppliers = await fetch('/api/suppliers?active=true')
+  .then(res => res.json())
+
+// Create purchase order
+const po = await fetch('/api/purchase-orders', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    supplier_id: 1,
+    location_id: 1,
+    items: [
+      { item_id: 5, quantity: 100, unit_price: 9.99 }
+    ]
+  })
+}).then(res => res.json())
+
+// Submit order
+await fetch(`/api/purchase-orders/${po.id}/submit`, {
+  method: 'POST'
+})
+
+// Receive items
+await fetch(`/api/purchase-orders/${po.id}/receive`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    items: [
+      { item_id: 5, received_quantity: 100 }
+    ]
+  })
+})
+```
+
+For complete documentation, see [Purchase Orders Guide](docs/PURCHASE_ORDERS.md).
+
 ## Documentation Links
 
 - [REST API Best Practices](https://restfulapi.net/)
 - [HTTP Status Codes](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status)
 - [CORS Guide](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS)
+- [Purchase Orders Documentation](docs/PURCHASE_ORDERS.md)
