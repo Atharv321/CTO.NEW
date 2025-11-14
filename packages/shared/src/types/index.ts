@@ -156,3 +156,102 @@ export interface ReportRun {
   createdAt: Date;
   completedAt?: Date;
 }
+
+// Alerting Types
+export interface AlertEvent {
+  id: string;
+  type: AlertEventType;
+  severity: AlertSeverity;
+  title: string;
+  message: string;
+  data: any;
+  userId?: string;
+  locationId?: string;
+  productId?: string;
+  createdAt: Date;
+  processedAt?: Date;
+}
+
+export enum AlertEventType {
+  LOW_STOCK = 'low_stock',
+  IMPENDING_EXPIRATION = 'impending_expiration',
+  SUPPLIER_ORDER_UPDATE = 'supplier_order_update',
+  SYSTEM_ERROR = 'system_error'
+}
+
+export enum AlertSeverity {
+  LOW = 'low',
+  MEDIUM = 'medium',
+  HIGH = 'high',
+  CRITICAL = 'critical'
+}
+
+export interface NotificationChannel {
+  type: NotificationChannelType;
+  enabled: boolean;
+  config: any;
+}
+
+export enum NotificationChannelType {
+  EMAIL = 'email',
+  SMS = 'sms',
+  PUSH = 'push',
+  IN_APP = 'in_app'
+}
+
+export interface UserNotificationPreference {
+  id: string;
+  userId: string;
+  alertTypes: AlertEventType[];
+  channels: NotificationChannel[];
+  minSeverity: AlertSeverity;
+  quietHours?: {
+    start: string; // HH:mm
+    end: string;   // HH:mm
+  };
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Notification {
+  id: string;
+  userId: string;
+  alertEventId: string;
+  channelType: NotificationChannelType;
+  status: NotificationStatus;
+  sentAt?: Date;
+  error?: string;
+  retryCount: number;
+  createdAt: Date;
+}
+
+export enum NotificationStatus {
+  PENDING = 'pending',
+  SENT = 'sent',
+  FAILED = 'failed',
+  RETRYING = 'retrying'
+}
+
+export interface InAppNotification {
+  id: string;
+  userId: string;
+  title: string;
+  message: string;
+  severity: AlertSeverity;
+  read: boolean;
+  createdAt: Date;
+  readAt?: Date;
+}
+
+export interface AlertThreshold {
+  id: string;
+  locationId?: string;
+  productId?: string;
+  type: AlertEventType;
+  threshold: number;
+  unit: string;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}

@@ -138,6 +138,109 @@ const migrations = [
       CREATE INDEX IF NOT EXISTS idx_report_runs_status ON report_runs(status);
     `,
     down: ``
+  },
+  {
+    name: '010_create_alert_events_table',
+    up: `
+      CREATE TABLE IF NOT EXISTS alert_events (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        type VARCHAR(50) NOT NULL CHECK (type IN ('low_stock', 'impending_expiration', 'supplier_order_update', 'system_error')),
+        severity VARCHAR(20) NOT NULL CHECK (severity IN ('low', 'medium', 'high', 'critical')),
+        title VARCHAR(255) NOT NULL,
+        message TEXT NOT NULL,
+        data JSONB,
+        user_id UUID REFERENCES users(id),
+        location_id UUID REFERENCES locations(id),
+        product_id UUID REFERENCES products(id),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        processed_at TIMESTAMP
+      );
+    `,
+    down: `DROP TABLE IF EXISTS alert_events;`
+  },
+  {
+    name: '011_create_alert_thresholds_table',
+    up: `
+      CREATE TABLE IF NOT EXISTS alert_thresholds (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        location_id UUID REFERENCES locations(id),
+        product_id UUID REFERENCES products(id),
+        type VARCHAR(50) NOT NULL CHECK (type IN ('low_stock', 'impending_expiration', 'supplier_order_update', 'system_error')),
+        threshold DECIMAL(10,2) NOT NULL,
+        unit VARCHAR(50) NOT NULL,
+        is_active BOOLEAN DEFAULT true,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(location_id, product_id, type)
+      );
+    `,
+    down: `DROP TABLE IF EXISTS alert_thresholds;`
+  },
+  {
+    name: '012_create_user_notification_preferences_table',
+    up: `
+      CREATE TABLE IF NOT EXISTS user_notification_preferences (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        alert_types TEXT[] NOT NULL,
+        channels JSONB NOT NULL,
+        min_severity VARCHAR(20) NOT NULL CHECK (min_severity IN ('low', 'medium', 'high', 'critical')),
+        quiet_hours JSONB,
+        is_active BOOLEAN DEFAULT true,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(user_id)
+      );
+    `,
+    down: `DROP TABLE IF EXISTS user_notification_preferences;`
+  },
+  {
+    name: '013_create_notifications_table',
+    up: `
+      CREATE TABLE IF NOT EXISTS notifications (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID NOT NULL REFERENCES users(id),
+        alert_event_id UUID NOT NULL REFERENCES alert_events(id),
+        channel_type VARCHAR(20) NOT NULL CHECK (channel_type IN ('email', 'sms', 'push', 'in_app')),
+        status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'sent', 'failed', 'retrying')),
+        sent_at TIMESTAMP,
+        error TEXT,
+        retry_count INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `,
+    down: `DROP TABLE IF EXISTS notifications;`
+  },
+  {
+    name: '014_create_in_app_notifications_table',
+    up: `
+      CREATE TABLE IF NOT EXISTS in_app_notifications (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID NOT NULL REFERENCES users(id),
+        title VARCHAR(255) NOT NULL,
+        message TEXT NOT NULL,
+        severity VARCHAR(20) NOT NULL CHECK (severity IN ('low', 'medium', 'high', 'critical')),
+        read BOOLEAN DEFAULT false,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        read_at TIMESTAMP
+      );
+    `,
+    down: `DROP TABLE IF EXISTS in_app_notifications;`
+  },
+  {
+    name: '015_create_alerting_indexes',
+    up: `
+      CREATE INDEX IF NOT EXISTS idx_alert_events_type_severity ON alert_events(type, severity);
+      CREATE INDEX IF NOT EXISTS idx_alert_events_created_at ON alert_events(created_at);
+      CREATE INDEX IF NOT EXISTS idx_alert_events_user_id ON alert_events(user_id);
+      CREATE INDEX IF NOT EXISTS idx_alert_events_location_id ON alert_events(location_id);
+      CREATE INDEX IF NOT EXISTS idx_alert_events_product_id ON alert_events(product_id);
+      CREATE INDEX IF NOT EXISTS idx_notifications_user_id_status ON notifications(user_id, status);
+      CREATE INDEX IF NOT EXISTS idx_notifications_alert_event_id ON notifications(alert_event_id);
+      CREATE INDEX IF NOT EXISTS idx_in_app_notifications_user_id_read ON in_app_notifications(user_id, read);
+      CREATE INDEX IF NOT EXISTS idx_in_app_notifications_created_at ON in_app_notifications(created_at);
+    `,
+    down: ``
   }
 ];
 

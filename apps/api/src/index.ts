@@ -8,10 +8,12 @@ import dotenv from 'dotenv';
 import analyticsRoutes from './routes/analytics.js';
 import authRoutes from './routes/auth.js';
 import schedulerRoutes from './routes/scheduler.js';
+import alertsRoutes from './routes/alerts.js';
 
 // Import services
 import cacheService from './services/cache.js';
 import schedulerService from './services/scheduler.js';
+import alertingService from './services/alerting.js';
 
 // Load environment variables
 dotenv.config();
@@ -51,6 +53,7 @@ app.get('/health', (req, res) => {
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/scheduler', schedulerRoutes);
+app.use('/api/alerts', alertsRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {
@@ -61,7 +64,8 @@ app.get('/', (req, res) => {
       health: '/health',
       analytics: '/api/analytics',
       auth: '/api/auth',
-      scheduler: '/api/scheduler'
+      scheduler: '/api/scheduler',
+      alerts: '/api/alerts'
     }
   });
 });
@@ -86,6 +90,9 @@ async function startServer() {
     // Initialize scheduler
     await schedulerService.initialize();
     
+    // Start alerting worker
+    await alertingService.start();
+    
     // Start server
     app.listen(PORT, () => {
       console.log(`Analytics API server running on port ${PORT}`);
@@ -102,6 +109,7 @@ async function startServer() {
 process.on('SIGTERM', async () => {
   console.log('SIGTERM received, shutting down gracefully...');
   await schedulerService.stopAll();
+  await alertingService.stop();
   await cacheService.disconnect();
   process.exit(0);
 });
@@ -109,6 +117,7 @@ process.on('SIGTERM', async () => {
 process.on('SIGINT', async () => {
   console.log('SIGINT received, shutting down gracefully...');
   await schedulerService.stopAll();
+  await alertingService.stop();
   await cacheService.disconnect();
   process.exit(0);
 });
