@@ -1,5 +1,10 @@
 const express = require('express');
 const cors = require('cors');
+require('dotenv').config();
+
+const categoriesRouter = require('./src/routes/categories');
+const itemsRouter = require('./src/routes/items');
+const stockRouter = require('./src/routes/stock');
 const {
   receiveStock,
   consumeStock,
@@ -28,6 +33,9 @@ const createApp = () => {
     res.json({ status: 'OK' });
   });
 
+  app.use('/api/categories', categoriesRouter);
+  app.use('/api/items', itemsRouter);
+  app.use('/api/stock', stockRouter);
   app.post('/api/stock/receive', async (req, res) => {
     try {
       const { itemId, barcode, locationId, quantity, reason, userId, barcodeReference, metadata } = req.body;
