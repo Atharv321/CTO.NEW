@@ -1,0 +1,157 @@
+.stock-levels-chart {
+  background: var(--bg-white);
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+.stock-levels-chart__header {
+  margin-bottom: 1.5rem;
+}
+
+.stock-levels-chart__title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.stock-levels-chart__content {
+  width: 100%;
+  height: 300px;
+  margin-bottom: 1rem;
+}
+
+.stock-levels-chart__legend {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.stock-levels-chart__legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.stock-levels-chart__legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.stock-levels-chart__legend-color--low {
+  background-color: #ef5350;
+}
+
+.stock-levels-chart__legend-color--normal {
+  background-color: #4caf50;
+}
+
+.stock-levels-chart__legend-color--high {
+  background-color: #ff9800;
+}
+
+.stock-levels-chart__tooltip {
+  background: var(--bg-white);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 0.75rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  min-width: 150px;
+}
+
+.stock-levels-chart__tooltip-label {
+  margin: 0 0 0.5rem 0;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.stock-levels-chart__tooltip-value {
+  margin: 0.25rem 0;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.stock-levels-chart__tooltip-status {
+  margin: 0.5rem 0 0 0;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.stock-levels-chart__status-indicator {
+  font-weight: 600;
+}
+
+.stock-levels-chart__status-indicator--low {
+  color: #ef5350;
+}
+
+.stock-levels-chart__status-indicator--normal {
+  color: #4caf50;
+}
+
+.stock-levels-chart__status-indicator--high {
+  color: #ff9800;
+}
+
+.stock-levels-chart__loading,
+.stock-levels-chart__error,
+.stock-levels-chart__empty {
+  padding: 3rem 2rem;
+  text-align: center;
+  background: var(--bg-white);
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.stock-levels-chart__loading {
+  color: var(--text-secondary);
+}
+
+.stock-levels-chart__error {
+  color: var(--error-color);
+  background: rgba(239, 83, 80, 0.05);
+  border: 1px solid rgba(239, 83, 80, 0.2);
+}
+
+.stock-levels-chart__empty {
+  color: var(--text-secondary);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .stock-levels-chart {
+    padding: 1rem;
+  }
+
+  .stock-levels-chart__title {
+    font-size: 1.125rem;
+  }
+
+  .stock-levels-chart__content {
+    height: 250px;
+  }
+
+  .stock-levels-chart__legend {
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .stock-levels-chart__legend {
+    gap: 0.75rem;
+  }
+
+  .stock-levels-chart__legend-item {
+    font-size: 0.75rem;
+  }
+
+  .stock-levels-chart__content {
+    height: 200px;
+  }
+}
