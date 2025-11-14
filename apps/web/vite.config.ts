@@ -28,14 +28,22 @@ export default defineConfig({
 
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
   server: {
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost:3000',
+        target: process.env.VITE_API_URL || 'http://localhost:3001',
         changeOrigin: true,
-        rewrite: path => path.replace(/^\/api/, ''),
+        rewrite: (pathStr) => pathStr.replace(/^\/api/, ''),
       },
     },
+  },
+  define: {
+    'process.env': process.env,
   },
 });

@@ -1,6 +1,31 @@
-# Inventory Scanner API Specification
+# API Specification
 
-This document describes the API support and integration points for the Inventory Barcode Scanner system.
+This document describes the API endpoints available in the system.
+
+## Admin API
+
+For barbershop booking system admin endpoints, see the [Admin API Documentation](docs/admin-api.md).
+
+The admin API provides:
+- JWT-based authentication (password + magic link)
+- Services CRUD operations
+- Barbers management
+- Availability management (recurring templates + date overrides)
+- Bookings management with filtering and pagination
+- Comprehensive validation and error handling
+
+Quick admin API endpoints:
+- **Auth**: `POST /api/auth/login`, `POST /api/auth/magic-link`
+- **Services**: `GET/POST/PUT/DELETE /api/admin/services`
+- **Barbers**: `GET/POST/PUT/DELETE /api/admin/barbers`
+- **Availability**: `/api/admin/availability/templates`, `/api/admin/availability/overrides`
+- **Bookings**: `GET /api/admin/bookings` (with filtering & pagination)
+
+---
+
+# Inventory Scanner API Specification (Legacy)
+
+This section describes the API support and integration points for the Inventory Barcode Scanner system.
 
 ## Overview
 

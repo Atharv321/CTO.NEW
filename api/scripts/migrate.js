@@ -1,3 +1,9 @@
+const { prisma } = require('../lib/prisma');
+require('dotenv').config();
+const { runMigrations } = require('../src/db/migrations');
+const { Client } = require('pg');
+const fs = require('fs');
+const path = require('path');
 const { spawnSync } = require('child_process');
 
 const url = process.env.DATABASE_URL || 'postgresql://localhost:5432/appdb';
@@ -7,18 +13,71 @@ const path = require('path');
 
 const url = process.env.DATABASE_URL || 'postgresql://devuser:devpassword@db:5432/appdb';
 
-const sanitize = (connectionString) => {
+const runMigrations = async () => {
   try {
-    const parsed = new URL(connectionString);
-    if (parsed.password) {
-      parsed.password = '***';
-    }
-    return parsed.toString();
+    console.log('Running database migrations...');
+    
+    // Generate Prisma client
+    const { execSync } = require('child_process');
+    execSync('npx prisma generate', { stdio: 'inherit' });
+    
+    // Run migrations
+    execSync('npx prisma migrate deploy', { stdio: 'inherit' });
+    
+    console.log('Migrations completed successfully');
   } catch (error) {
-    return 'unknown-database';
+    console.error('Migration failed:', error);
+    process.exit(1);
   }
 };
 
+console.log(`Running migrations against ${sanitize(url)}`);
+
+runMigrations()
+  .then(() => {
+    console.log('Migrations completed successfully');
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error('Migration failed:', error);
+    process.exit(1);
+  });
+async function runMigrations() {
+  const client = new Client({ connectionString: url });
+  
+  try {
+    await client.connect();
+    console.log(`Connected to database: ${sanitize(url)}`);
+    
+    const migrationsDir = path.join(__dirname, '..', 'migrations');
+    const files = fs.readdirSync(migrationsDir)
+      .filter(file => file.endsWith('.sql'))
+      .sort();
+    
+    for (const file of files) {
+      const filePath = path.join(migrationsDir, file);
+      const sql = fs.readFileSync(filePath, 'utf8');
+      
+      console.log(`Running migration: ${file}`);
+      await client.query(sql);
+      console.log(`✓ Completed: ${file}`);
+    }
+    
+    console.log('\n✓ All migrations completed successfully');
+  } catch (error) {
+    console.error('Migration failed:', error.message);
+    process.exit(1);
+  } finally {
+    await client.end();
+  }
+}
+
+if (require.main === module) {
+  runMigrations();
+}
+
+module.exports = { runMigrations };
+module.exports = { runMigrations };
 const run = (label, command) => {
   console.log(`Running step: ${label}`);
   const result = spawnSync(command, {
@@ -61,6 +120,29 @@ async function runMigrations() {
   const pool = new Pool({ connectionString: url });
   
   try {
+    const migrationsDir = path.join(__dirname, '../migrations');
+    
+    if (!fs.existsSync(migrationsDir)) {
+      console.log('No migrations directory found. Skipping migrations.');
+      return;
+    }
+    
+    const files = fs.readdirSync(migrationsDir)
+      .filter(f => f.endsWith('.sql'))
+      .sort();
+    
+    if (files.length === 0) {
+      console.log('No migration files found. Skipping migrations.');
+      return;
+    }
+    
+    for (const file of files) {
+      console.log(`Running migration: ${file}`);
+      const filePath = path.join(migrationsDir, file);
+      const sql = fs.readFileSync(filePath, 'utf8');
+      
+      await pool.query(sql);
+      console.log(`✓ Migration ${file} completed`);
     // Create migrations tracking table
     await pool.query(`
       CREATE TABLE IF NOT EXISTS schema_migrations (
@@ -117,6 +199,7 @@ async function runMigrations() {
     
     console.log('All migrations completed successfully');
   } catch (error) {
+    console.error('Migration error:', error);
     console.error('Migration failed:', error);
     process.exit(1);
   } finally {
@@ -124,4 +207,9 @@ async function runMigrations() {
   }
 }
 
+if (require.main === module) {
+  runMigrations();
+}
+
+module.exports = { runMigrations };
 runMigrations();

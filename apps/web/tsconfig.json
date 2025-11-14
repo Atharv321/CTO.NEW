@@ -42,7 +42,12 @@
     "outDir": "./dist",
     "rootDir": "./src",
     "declaration": false,
-    "types": ["vite/client", "node"]
+    "types": ["vite/client", "node", "vitest/globals"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
+    "jsx": "react-jsx"
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist"]

@@ -1,3 +1,80 @@
+/**
+ * Common type definitions for the application
+ */
+
+/**
+ * API response wrapper
+ */
+export interface ApiResponse<T> {
+  data: T;
+  message?: string;
+  status: number;
+}
+
+/**
+ * Pagination parameters
+ */
+export interface PaginationParams {
+  page: number;
+  limit: number;
+  sort?: string;
+  order?: 'asc' | 'desc';
+}
+
+/**
+ * Paginated response
+ */
+export interface PaginatedResponse<T> {
+  items: T[];
+  total: number;
+  page: number;
+  limit: number;
+  hasMore: boolean;
+}
+
+/**
+ * User information
+ */
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: 'admin' | 'barber' | 'customer';
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Barber information
+ */
+export interface Barber {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  specialty?: string[];
+  avatar?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Customer information
+ */
+export interface Customer {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  avatar?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Booking information
+ */
 export interface User {
   id: string;
   email: string;
@@ -182,6 +259,15 @@ export interface Booking {
   id: string;
   customerId: string;
   barberId: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  service: string;
+  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+  price: number;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
   serviceId: string;
   date: string;
   timeSlot: string;
@@ -192,4 +278,85 @@ export interface Booking {
 export interface TimeSlot {
   time: string;
   available: boolean;
+}
+
+// Inventory Types
+export interface Category {
+  id: number | string;
+  name: string;
+  description?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface InventoryLocation {
+  id: number | string;
+  name: string;
+  description?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface InventoryItem {
+  id: number | string;
+  sku: string;
+  barcode: string;
+  name: string;
+  description?: string;
+  categoryId: number | string;
+  supplierId?: number | string;
+  price: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface StockLevel {
+  id: number | string;
+  itemId: number | string;
+  locationId: number | string;
+  quantity: number;
+  reorderLevel?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface StockMovement {
+  id: number | string;
+  itemId: number | string;
+  locationId: number | string;
+  quantity: number;
+  movementType: 'inbound' | 'outbound' | 'adjustment' | 'scanned_entry' | 'return';
+  notes?: string;
+  referenceId?: string;
+  adjustedBy?: string;
+  createdAt?: string;
+  timestamp?: string;
+}
+
+export interface AuditLog {
+  id: number | string;
+  itemId: number | string;
+  locationId: number | string;
+  action: 'adjustment' | 'movement' | 'transfer';
+  quantity: number;
+  movementType?: string;
+  notes?: string;
+  adjustedBy?: string;
+  userId?: string;
+  createdAt?: string;
+  timestamp?: string;
+}
+
+export interface InventoryItemFilters {
+  search?: string;
+  categoryId?: number | string;
+  supplierId?: number | string;
+  locationId?: number | string;
+}
+
+export interface StockMovementRequest {
+  quantity: number;
+  movementType: 'inbound' | 'outbound' | 'adjustment' | 'scanned_entry' | 'return';
+  notes?: string;
+  referenceId?: string;
 }
