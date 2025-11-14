@@ -60,7 +60,7 @@ services:
     volumes:
       - ./apps/api:/app
       - /app/node_modules
-    command: sh -c "npm install && npm run dev"
+    command: sh -c "npm install && npm run start:dev"
 
   # Reminder Worker Service
   worker:
