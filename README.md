@@ -35,6 +35,32 @@ This repository provides a reference implementation for a full CI/CD pipeline de
 | `make logs` | Tail logs for all services |
 | `make rollback` | Trigger staging rollback via Helm |
 
+## Database & Migrations
+
+The API service uses **Prisma** to manage the relational schema, migrations, and seed data. The data model lives in [`api/prisma/schema.prisma`](api/prisma/schema.prisma); generated SQL migrations are stored in [`api/prisma/migrations`](api/prisma/migrations).
+
+### Running migrations locally
+
+```bash
+export DATABASE_URL="postgresql://user:password@localhost:5432/appdb"
+cd api
+npm install
+npm run migrate
+```
+
+The migration script will apply the pending Prisma migrations and populate baseline seed data (roles and sample locations). Set `SKIP_DB_SEED=true` when running the script if you want to bypass the seed step.
+
+### Creating a new migration
+
+1. Update the Prisma schema (`api/prisma/schema.prisma`).
+2. Run `npx prisma migrate dev --name <change-name>` inside the `api` directory. Use `--create-only` if you want to review the SQL without executing it.
+3. Commit both the schema change and the generated migration folder.
+
+### Additional documentation
+
+- [`docs/database-schema.md`](docs/database-schema.md) – entity relationships, constraints, and auditing approach.
+- [`docs/database-migrations.md`](docs/database-migrations.md) – detailed guidance on the Prisma-based migration workflow, environment-specific commands, and troubleshooting tips.
+
 ## CI/CD Pipeline
 
 - Triggered on pushes to `main` and pull requests targeting `main`.
@@ -391,12 +417,14 @@ For issues or questions:
 - Check that all dependencies installed correctly
 # Barber Booking System
 
-A comprehensive barber booking platform with customer-facing UI and backend API.
+A comprehensive barber booking platform with customer-facing UI, web application, and backend API.
 
 ## Project Structure
 
 ```
 ├── apps/
+│   ├── customer-booking-ui/     # Next.js customer-facing application
+│   └── web/                     # Vite + React main web application
 │   ├── api/              # Backend API service
 │   └── web/              # Frontend web application
 ├── packages/
@@ -407,16 +435,26 @@ A comprehensive barber booking platform with customer-facing UI and backend API.
 
 │   └── customer-booking-ui/     # Next.js customer-facing application
 ├── packages/
-│   └── shared/                   # Shared types and utilities
+│   └── shared/                   # Shared types and utilities (future)
 └── package.json                  # Root monorepo package
 ```
 
 ## Technologies
 
-- **Frontend**: Next.js 14, React 18, TypeScript
+### Customer Booking UI
+- **Framework**: Next.js 14, React 18, TypeScript
 - **State Management**: TanStack React Query v5
 - **Forms**: React Hook Form with Zod validation
 - **Styling**: CSS Modules with mobile-responsive design
+- **API Client**: Axios
+
+### Web Application
+- **Framework**: Vite 5 + React 18 + TypeScript
+- **UI Library**: Mantine UI 7
+- **State Management**: Zustand + TanStack React Query v5
+- **Routing**: React Router v6
+- **Testing**: Vitest + React Testing Library
+- **Documentation**: Storybook 7
 - **API Client**: Axios
 
 ## Getting Started
@@ -632,9 +670,59 @@ The application uses CSS Modules for component styling with:
 5. **Mobile First**: Responsive design starts from mobile screens
 6. **Type Safety**: Full TypeScript coverage
 
+## Web Application
+
+The main web application is located at `apps/web/` and built with Vite for optimal development experience.
+
+### Features
+
+- **Modern Stack**: Vite 5 for lightning-fast HMR and optimal build performance
+- **UI Components**: Mantine UI 7 with comprehensive component library
+- **State Management**: Hybrid approach with Zustand for global state and React Query for server state
+- **Routing**: React Router v6 for client-side navigation
+- **Type Safety**: Full TypeScript support with strict mode
+- **Testing**: Vitest + React Testing Library for unit and integration tests
+- **Documentation**: Storybook 7 for component development and documentation
+- **Code Quality**: ESLint + Prettier for consistent code style
+
+### Quick Start
+
+```bash
+cd apps/web
+
+# Install dependencies (if not already installed)
+npm install
+
+# Start development server
+npm run dev
+
+# Run tests
+npm run test
+
+# Run linting
+npm run lint
+
+# Type checking
+npm run type-check
+
+# Build for production
+npm run build
+
+# Run Storybook
+npm run storybook
+```
+
+### Architecture
+
+- **Path Aliases**: Configured for clean imports (`@/`, `@components/`, `@lib/`, etc.)
+- **API Client**: Centralized Axios instance with interceptors
+- **Theme System**: Customizable Mantine theme
+- **Environment Config**: `.env` based configuration with TypeScript support
+
+For detailed documentation, see [apps/web/README.md](apps/web/README.md)
+
 ## Future Enhancements
 
-- [ ] Storybook component documentation
 - [ ] Playwright E2E tests
 - [ ] Payment integration
 - [ ] Calendar widget
@@ -642,6 +730,7 @@ The application uses CSS Modules for component styling with:
 - [ ] Booking management page
 - [ ] Analytics tracking
 - [ ] Multi-language support
+- [ ] Mobile applications (React Native)
 
 ## License
 
