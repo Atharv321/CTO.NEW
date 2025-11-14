@@ -1,23 +1,36 @@
 const express = require('express');
 const cors = require('cors');
+const swaggerUi = require('swagger-ui-express');
 require('dotenv').config();
 
+// Import routes
+const authRoutesNew = require('./src/routes/authRoutes');
+const authRoutesLegacy = require('./routes/auth');
+const protectedRoutesDemo = require('./src/routes/protected-sample');
 const bookingsRouter = require('./src/routes/bookings');
 const notificationsRouter = require('./src/routes/notifications');
-const { ApolloServer } = require('@apollo/server');
-const { expressMiddleware } = require('@apollo/server/express4');
-const http = require('http');
-const { makeExecutableSchema } = require('@graphql-tools/schema');
-require('dotenv').config();
-
-const authRoutes = require('./src/routes/auth');
 const servicesRoutes = require('./src/routes/services');
 const barbersRoutes = require('./src/routes/barbers');
 const availabilityRoutes = require('./src/routes/availability');
-const bookingsRoutes = require('./src/routes/bookings');
 const categoriesRouter = require('./src/routes/categories');
 const itemsRouter = require('./src/routes/items');
 const stockRouter = require('./src/routes/stock');
+const suppliersRouter = require('./src/routes/suppliers');
+const purchaseOrdersRouter = require('./src/routes/purchaseOrders');
+const locationsRouter = require('./src/routes/locations');
+const customersRouter = require('./routes/customers');
+const servicesRouterLegacy = require('./routes/services');
+const barbersRouterLegacy = require('./routes/barbers');
+const bookingsRouterLegacy = require('./routes/bookings');
+
+// Import middleware
+const { apiLimiter } = require('./middleware/rateLimiting');
+const { injectUserContext } = require('./middleware/auth');
+
+// Import Swagger
+const swaggerSpec = require('./swagger');
+
+// Import stock workflows
 const {
   receiveStock,
   consumeStock,
@@ -28,83 +41,72 @@ const {
   computeLowStockThreshold,
   getInventoryStatus,
 } = require('./src/stock-workflows');
-const authRoutes = require('./routes/auth');
-const suppliersRouter = require('./src/routes/suppliers');
-const purchaseOrdersRouter = require('./src/routes/purchaseOrders');
-const itemsRouter = require('./src/routes/items');
-const locationsRouter = require('./src/routes/locations');
-
-// Import routes and middleware
-const servicesRouter = require('./routes/services');
-const barbersRouter = require('./routes/barbers');
-const customersRouter = require('./routes/customers');
-const bookingsRouter = require('./routes/bookings');
-const { apiLimiter } = require('./middleware/rateLimiting');
-
-// GraphQL temporarily disabled for debugging
-// const typeDefs = require('./graphql/typeDefs');
-// const resolvers = require('./graphql/resolvers');
 
 const createApp = async () => {
   const app = express();
-  const httpServer = http.createServer(app);
-
-  // GraphQL temporarily disabled for debugging
-  /*
-  // Create GraphQL schema
-  const schema = makeExecutableSchema({
-    typeDefs,
-    resolvers,
-  });
-
-  // Create Apollo Server
-  const server = new ApolloServer({
-    schema,
-  });
-
-  await server.start();
-  */
 
   // Middleware
   app.use(cors());
   app.use(express.json());
-  
   app.use(express.urlencoded({ extended: true }));
+
+  // Inject user context to all requests
+  app.use(injectUserContext);
 
   // Apply rate limiting to all API routes
   app.use('/api', apiLimiter);
 
-  // Health check
-  // Middleware
-  app.use(cors());
-  app.use(express.json());
+  // Swagger documentation
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
   // Health check
-  // Routes
   app.get('/health', (req, res) => {
-    res.json({ status: 'OK' });
+    res.json({ status: 'OK', timestamp: new Date().toISOString() });
   });
 
+  // API documentation endpoint
+  app.get('/api', (req, res) => {
+    res.json({
+      message: 'Barber Booking API',
+      version: '1.0.0',
+      documentation: '/api-docs',
+      endpoints: {
+        auth: '/api/auth',
+        bookings: '/api/bookings',
+        services: '/api/services',
+        barbers: '/api/barbers',
+      },
+    });
+  });
+
+  // Auth routes (new with JWT and RBAC)
+  app.use('/api/auth', authRoutesNew);
+
+  // Protected routes demo (with RBAC)
+  app.use('/api/protected', protectedRoutesDemo);
+
+  // Legacy auth routes (for backward compatibility)
+  app.use('/api/legacy/auth', authRoutesLegacy);
+
+  // Booking management routes
   app.use('/api/bookings', bookingsRouter);
   app.use('/api/notifications', notificationsRouter);
-  // GraphQL endpoint temporarily disabled
-  // app.use('/graphql', expressMiddleware(server));
-  // API routes
-  app.use('/api/auth', authRoutes);
+
+  // Admin service routes
   app.use('/api/admin/services', servicesRoutes);
   app.use('/api/admin/barbers', barbersRoutes);
   app.use('/api/admin/availability', availabilityRoutes);
-  app.use('/api/admin/bookings', bookingsRoutes);
+  app.use('/api/admin/bookings', bookingsRouter);
 
-  // 404 handler
-  app.use((req, res) => {
-    res.status(404).json({
-      error: 'Not found',
-      message: 'The requested endpoint does not exist',
-    });
+  // Inventory management routes
   app.use('/api/categories', categoriesRouter);
   app.use('/api/items', itemsRouter);
   app.use('/api/stock', stockRouter);
+  app.use('/api/suppliers', suppliersRouter);
+  app.use('/api/purchase-orders', purchaseOrdersRouter);
+  app.use('/api/locations', locationsRouter);
+
+  // Stock operation endpoints
   app.post('/api/stock/receive', async (req, res) => {
     try {
       const { itemId, barcode, locationId, quantity, reason, userId, barcodeReference, metadata } = req.body;
@@ -311,9 +313,9 @@ const createApp = async () => {
       });
     }
   });
+
   // Analytics endpoints
   app.get('/api/analytics/summary', (req, res) => {
-    // Mock data for dashboard summary
     res.json({
       lowStockCount: 12,
       totalValuation: 45890.50,
@@ -324,9 +326,8 @@ const createApp = async () => {
   });
 
   app.get('/api/analytics/turnover', (req, res) => {
-    // Mock data for turnover chart (last 12 months)
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const turnoverData = months.map((month, index) => ({
+    const turnoverData = months.map((month) => ({
       month,
       turnover: Math.floor(Math.random() * 50000) + 20000,
       itemsSold: Math.floor(Math.random() * 100) + 50
@@ -336,7 +337,6 @@ const createApp = async () => {
   });
 
   app.get('/api/analytics/stock-levels', (req, res) => {
-    // Mock data for stock levels
     res.json([
       { category: 'Electronics', currentStock: 45, minStock: 20, maxStock: 100 },
       { category: 'Tools', currentStock: 8, minStock: 15, maxStock: 50 },
@@ -347,7 +347,6 @@ const createApp = async () => {
   });
 
   app.get('/api/analytics/alerts', (req, res) => {
-    // Mock data for alerts
     res.json([
       {
         id: '1',
@@ -379,101 +378,42 @@ const createApp = async () => {
       }
     ]);
   });
-  // Auth routes
-  app.use('/api/auth', authRoutes);
+
+  // Legacy routes (for backward compatibility)
+  app.use('/api/services', servicesRouterLegacy);
+  app.use('/api/barbers', barbersRouterLegacy);
+  app.use('/api/customers', customersRouter);
+  app.use('/api/bookings', bookingsRouterLegacy);
 
   // 404 handler
-  app.use('*', (req, res) => {
-    res.status(404).json({ message: 'Route not found' });
+  app.use((req, res) => {
+    res.status(404).json({
+      error: 'Not found',
+      message: 'The requested endpoint does not exist',
+    });
   });
 
   // Error handler
   app.use((err, req, res, next) => {
     console.error('Unhandled error:', err);
-    res.status(500).json({
-      error: 'Internal server error',
+    res.status(err.status || 500).json({
+      error: err.name || 'Internal server error',
       message: process.env.NODE_ENV === 'development' ? err.message : 'An unexpected error occurred',
     });
   });
-    console.error(err.stack);
-    res.status(500).json({ message: 'Internal server error' });
-  });
-  // API routes
-  app.use('/api/items', itemsRouter);
-  app.use('/api/locations', locationsRouter);
-  app.use('/api/suppliers', suppliersRouter);
-  app.use('/api/purchase-orders', purchaseOrdersRouter);
 
   return app;
 };
 
-  // REST API routes
-  app.use('/api/services', servicesRouter);
-  app.use('/api/barbers', barbersRouter);
-  app.use('/api/customers', customersRouter);
-  app.use('/api/bookings', bookingsRouter);
-
-  // API documentation endpoint
-  app.get('/api', (req, res) => {
-    res.json({
-      message: 'Barber Booking API',
-      version: '1.0.0',
-      endpoints: {
-        rest: {
-          services: '/api/services',
-          barbers: '/api/barbers',
-          customers: '/api/customers',
-          bookings: '/api/bookings',
-          availableSlots: '/api/bookings/available-slots'
-        },
-        graphql: '/graphql'
-      },
-      documentation: {
-        health: '/health',
-        restApi: '/api',
-        graphqlPlayground: 'Visit /graphql in browser for GraphQL Playground'
-      }
-    });
-  });
-
-  // Error handling middleware
-  app.use((error, req, res, next) => {
-    console.error('Error:', error);
-    
-    if (error.name === 'PrismaClientKnownRequestError') {
-      return res.status(400).json({
-        success: false,
-        error: 'Database operation failed',
-        details: error.message
-      });
-    }
-
-    if (error.name === 'ValidationError') {
-      return res.status(400).json({
-        success: false,
-        error: 'Validation failed',
-        details: error.message
-      });
-    }
-
-    res.status(500).json({
-      success: false,
-      error: 'Internal server error',
-      message: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
-    });
-  });
-
-  return { app, httpServer };
-};
-
 const startServer = async () => {
-  const { app, httpServer } = await createApp();
+  const app = await createApp();
   
   const PORT = process.env.PORT || 3001;
   
-  httpServer.listen(PORT, () => {
+  app.listen(PORT, () => {
     console.log(`API server listening on port ${PORT}`);
-    console.log(`GraphQL endpoint: http://localhost:${PORT}/graphql`);
+    console.log(`Health check: http://localhost:${PORT}/health`);
+    console.log(`API documentation: http://localhost:${PORT}/api-docs`);
     console.log(`REST API base: http://localhost:${PORT}/api`);
   });
 };
@@ -483,19 +423,3 @@ if (require.main === module) {
 }
 
 module.exports = { createApp };
-  // Run migrations before starting server
-  const { runMigrations } = require('./src/db/migrations');
-  
-  runMigrations()
-    .then(() => {
-      app.listen(PORT, () => {
-        console.log(`API server listening on port ${PORT}`);
-      });
-    })
-    .catch((error) => {
-      console.error('Failed to start server:', error);
-      process.exit(1);
-    });
-}
-
-module.exports = app;
