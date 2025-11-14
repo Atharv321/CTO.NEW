@@ -2,6 +2,7 @@
   "name": "barber-booking-monorepo",
   "version": "0.0.1",
   "private": true,
+  "description": "Barber booking system - API and customer UI with Inventory Management",
   "description": "Barber booking system - API and customer UI",
   "name": "supplier-management-monorepo",
   "version": "0.0.1",
@@ -18,6 +19,15 @@
   ],
   "scripts": {
     "prepare": "husky install",
+    "dev": "npm -r run dev",
+    "build": "npm -r run build",
+    "test": "npm -r run test",
+    "lint": "eslint . --ext .ts,.tsx,.js,.jsx",
+    "lint:fix": "npm run lint -- --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "type-check": "npm -r run type-check",
+    "clean": "npm -r run clean && rm -rf node_modules pnpm-lock.yaml"
     "dev": "pnpm -r --parallel run dev",
     "build": "pnpm -r --filter ./apps --filter ./packages run build",
     "test": "pnpm run test:unit && pnpm run test:e2e",
