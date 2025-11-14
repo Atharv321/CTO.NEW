@@ -35,6 +35,32 @@ This repository provides a reference implementation for a full CI/CD pipeline de
 | `make logs` | Tail logs for all services |
 | `make rollback` | Trigger staging rollback via Helm |
 
+## Database & Migrations
+
+The API service uses **Prisma** to manage the relational schema, migrations, and seed data. The data model lives in [`api/prisma/schema.prisma`](api/prisma/schema.prisma); generated SQL migrations are stored in [`api/prisma/migrations`](api/prisma/migrations).
+
+### Running migrations locally
+
+```bash
+export DATABASE_URL="postgresql://user:password@localhost:5432/appdb"
+cd api
+npm install
+npm run migrate
+```
+
+The migration script will apply the pending Prisma migrations and populate baseline seed data (roles and sample locations). Set `SKIP_DB_SEED=true` when running the script if you want to bypass the seed step.
+
+### Creating a new migration
+
+1. Update the Prisma schema (`api/prisma/schema.prisma`).
+2. Run `npx prisma migrate dev --name <change-name>` inside the `api` directory. Use `--create-only` if you want to review the SQL without executing it.
+3. Commit both the schema change and the generated migration folder.
+
+### Additional documentation
+
+- [`docs/database-schema.md`](docs/database-schema.md) – entity relationships, constraints, and auditing approach.
+- [`docs/database-migrations.md`](docs/database-migrations.md) – detailed guidance on the Prisma-based migration workflow, environment-specific commands, and troubleshooting tips.
+
 ## CI/CD Pipeline
 
 - Triggered on pushes to `main` and pull requests targeting `main`.
