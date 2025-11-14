@@ -3,43 +3,56 @@ FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-# Install pnpm
-RUN npm install -g pnpm
-
 # Copy package files
-COPY package.json pnpm-lock.yaml ./
-COPY apps/api ./apps/api
-COPY packages ./packages
+COPY package*.json ./
+COPY packages/ ../packages/
+COPY tsconfig.json ./
 
 # Install dependencies
-RUN pnpm install --frozen-lockfile
+RUN npm ci
 
-# Build
-RUN pnpm --filter @app/api run build
+# Copy source code
+COPY src/ ./src/
 
-# Runtime stage
-FROM node:18-alpine
+# Build application
+RUN npm run build
+
+# Production stage
+FROM node:18-alpine AS runtime
+
+# Install dumb-init for proper signal handling
+RUN apk add --no-cache dumb-init
+
+# Create app user
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S analytics -u 1001
 
 WORKDIR /app
 
-# Install pnpm
-RUN npm install -g pnpm
-
 # Copy package files
-COPY package.json pnpm-lock.yaml ./
-COPY apps/api ./apps/api
-COPY packages ./packages
+COPY package*.json ./
 
-# Install production dependencies only
-RUN pnpm install --prod --frozen-lockfile
+# Install only production dependencies
+RUN npm ci --only=production && npm cache clean --force
 
-# Copy built application from builder
-COPY --from=builder /app/apps/api/dist ./apps/api/dist
+# Copy built application
+COPY --from=builder /app/dist ./dist
+
+# Change ownership to app user
+RUN chown -R analytics:nodejs /app
+USER analytics
+
+# Expose port
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
 
 # Set environment
 ENV NODE_ENV=production
 ENV API_PORT=3000
 
-EXPOSE 3000
-
-CMD ["node", "apps/api/dist/index.js"]
+# Start application
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["node", "dist/index.js"]

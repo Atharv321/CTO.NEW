@@ -96,4 +96,359 @@ enum BookingStatus {
   CONFIRMED
   CANCELLED
   COMPLETED
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum TransactionType {
+  INBOUND
+  OUTBOUND
+  ADJUSTMENT
+  TRANSFER
+  COUNT
+  SALE
+  RETURN
+}
+
+enum PurchaseOrderStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  PARTIALLY_RECEIVED
+  RECEIVED
+  CANCELLED
+}
+
+enum AlertType {
+  LOW_STOCK
+  OVERSTOCK
+  EXPIRY
+  ORDER_DELAY
+  AUDIT
+  CUSTOM
+}
+
+enum AlertSeverity {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+enum AlertStatus {
+  OPEN
+  ACKNOWLEDGED
+  RESOLVED
+  DISMISSED
+}
+
+enum NotificationChannel {
+  EMAIL
+  SMS
+  WEBHOOK
+  PUSH
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+  CANCELLED
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  RESTORE
+}
+
+model Role {
+  id          String    @id @default(uuid()) @db.Uuid
+  name        String    @unique(map: "roles_name_key")
+  description String?
+  users       User[]
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  @@map("roles")
+}
+
+model User {
+  id                     String             @id @default(uuid()) @db.Uuid
+  email                  String             @unique(map: "users_email_key")
+  firstName              String             @map("first_name")
+  lastName               String             @map("last_name")
+  passwordHash           String?            @map("password_hash")
+  phone                  String?
+  roleId                 String             @map("role_id") @db.Uuid
+  status                 UserStatus         @default(ACTIVE)
+  lastLoginAt            DateTime?          @map("last_login_at")
+  createdAt              DateTime           @default(now()) @map("created_at")
+  updatedAt              DateTime           @updatedAt @map("updated_at")
+  deletedAt              DateTime?          @map("deleted_at")
+  role                   Role               @relation(fields: [roleId], references: [id])
+  locations              UserLocation[]
+  stockTransactions      StockTransaction[] @relation("StockTransactionPerformedBy")
+  countedStockLevels     StockLevel[]       @relation("StockLevelCountedBy")
+  purchaseOrdersCreated  PurchaseOrder[]    @relation("PurchaseOrderOrderedBy")
+  purchaseOrdersApproved PurchaseOrder[]    @relation("PurchaseOrderApprovedBy")
+  alertsAcknowledged     Alert[]            @relation("AlertAcknowledgedBy")
+  auditLogs              AuditLog[]
+
+  @@map("users")
+}
+
+model Location {
+  id                String              @id @default(uuid()) @db.Uuid
+  code              String              @unique(map: "locations_code_key")
+  name              String
+  description       String?
+  addressLine1      String?             @map("address_line1")
+  addressLine2      String?             @map("address_line2")
+  city              String?
+  state             String?
+  postalCode        String?             @map("postal_code")
+  country           String?
+  timezone          String              @default("UTC")
+  isActive          Boolean             @default(true) @map("is_active")
+  createdAt         DateTime            @default(now()) @map("created_at")
+  updatedAt         DateTime            @updatedAt @map("updated_at")
+  deletedAt         DateTime?           @map("deleted_at")
+  users             UserLocation[]
+  items             LocationItem[]
+  stockTransactions StockTransaction[]
+  purchaseOrders    PurchaseOrder[]
+  alerts            Alert[]
+  notifications     NotificationQueue[]
+
+  @@map("locations")
+}
+
+model UserLocation {
+  id           String    @id @default(uuid()) @db.Uuid
+  userId       String    @map("user_id") @db.Uuid
+  locationId   String    @map("location_id") @db.Uuid
+  isPrimary    Boolean   @default(false) @map("is_primary")
+  assignedAt   DateTime  @default(now()) @map("assigned_at")
+  unassignedAt DateTime? @map("unassigned_at")
+  user         User      @relation(fields: [userId], references: [id])
+  location     Location  @relation(fields: [locationId], references: [id])
+
+  @@unique([userId, locationId], map: "user_locations_user_id_location_id_key")
+  @@map("user_locations")
+}
+
+model Supplier {
+  id             String          @id @default(uuid()) @db.Uuid
+  name           String          @unique(map: "suppliers_name_key")
+  contactName    String?         @map("contact_name")
+  email          String?
+  phone          String?
+  notes          String?
+  isPreferred    Boolean         @default(false) @map("is_preferred")
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+  deletedAt      DateTime?       @map("deleted_at")
+  items          LocationItem[]
+  purchaseOrders PurchaseOrder[]
+
+  @@map("suppliers")
+}
+
+model InventoryItem {
+  id                   String              @id @default(uuid()) @db.Uuid
+  masterSku            String?             @unique(map: "inventory_items_master_sku_key") @map("master_sku")
+  name                 String
+  description          String?
+  category             String?
+  defaultUnitOfMeasure String?             @map("default_unit_of_measure")
+  upc                  String?
+  createdAt            DateTime            @default(now()) @map("created_at")
+  updatedAt            DateTime            @updatedAt @map("updated_at")
+  deletedAt            DateTime?           @map("deleted_at")
+  locationItems        LocationItem[]
+  stockTransactions    StockTransaction[]
+  purchaseOrderItems   PurchaseOrderItem[]
+
+  @@map("inventory_items")
+}
+
+model LocationItem {
+  id                 String              @id @default(uuid()) @db.Uuid
+  locationId         String              @map("location_id") @db.Uuid
+  inventoryItemId    String              @map("inventory_item_id") @db.Uuid
+  supplierId         String?             @map("supplier_id") @db.Uuid
+  sku                String
+  barcode            String?
+  unitOfMeasure      String?             @map("unit_of_measure")
+  reorderPoint       Int                 @default(0) @map("reorder_point")
+  reorderQuantity    Int                 @default(0) @map("reorder_quantity")
+  leadTimeDays       Int?                @map("lead_time_days")
+  costAmount         Decimal?            @map("cost_amount") @db.Decimal(12, 2)
+  priceAmount        Decimal?            @map("price_amount") @db.Decimal(12, 2)
+  isActive           Boolean             @default(true) @map("is_active")
+  notes              String?
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @updatedAt @map("updated_at")
+  deletedAt          DateTime?           @map("deleted_at")
+  location           Location            @relation(fields: [locationId], references: [id])
+  inventoryItem      InventoryItem       @relation(fields: [inventoryItemId], references: [id])
+  supplier           Supplier?           @relation(fields: [supplierId], references: [id])
+  stockLevel         StockLevel?
+  stockTransactions  StockTransaction[]
+  purchaseOrderItems PurchaseOrderItem[]
+  alerts             Alert[]
+
+  @@unique([locationId, sku], map: "location_items_location_id_sku_key")
+  @@index([inventoryItemId], map: "location_items_inventory_item_id_idx")
+  @@index([supplierId], map: "location_items_supplier_id_idx")
+  @@map("location_items")
+}
+
+model StockLevel {
+  id                String       @id @default(uuid()) @db.Uuid
+  locationItemId    String       @unique(map: "stock_levels_location_item_id_key") @map("location_item_id") @db.Uuid
+  quantityOnHand    Decimal      @map("quantity_on_hand") @db.Decimal(18, 4)
+  quantityReserved  Decimal      @default(0) @map("quantity_reserved") @db.Decimal(18, 4)
+  quantityAvailable Decimal      @default(0) @map("quantity_available") @db.Decimal(18, 4)
+  lastCountedAt     DateTime?    @map("last_counted_at")
+  countedById       String?      @map("counted_by_id") @db.Uuid
+  createdAt         DateTime     @default(now()) @map("created_at")
+  updatedAt         DateTime     @updatedAt @map("updated_at")
+  locationItem      LocationItem @relation(fields: [locationItemId], references: [id])
+  countedBy         User?        @relation("StockLevelCountedBy", fields: [countedById], references: [id])
+
+  @@map("stock_levels")
+}
+
+model StockTransaction {
+  id                  String             @id @default(uuid()) @db.Uuid
+  locationItemId      String             @map("location_item_id") @db.Uuid
+  locationId          String             @map("location_id") @db.Uuid
+  inventoryItemId     String             @map("inventory_item_id") @db.Uuid
+  performedById       String?            @map("performed_by_id") @db.Uuid
+  purchaseOrderItemId String?            @map("purchase_order_item_id") @db.Uuid
+  transactionType     TransactionType    @map("transaction_type")
+  quantity            Decimal            @db.Decimal(18, 4)
+  occurredAt          DateTime           @default(now()) @map("occurred_at")
+  reference           String?
+  note                String?
+  metadata            Json?
+  createdAt           DateTime           @default(now()) @map("created_at")
+  locationItem        LocationItem       @relation(fields: [locationItemId], references: [id])
+  location            Location           @relation(fields: [locationId], references: [id])
+  inventoryItem       InventoryItem      @relation(fields: [inventoryItemId], references: [id])
+  performedBy         User?              @relation("StockTransactionPerformedBy", fields: [performedById], references: [id])
+  purchaseOrderItem   PurchaseOrderItem? @relation("PurchaseOrderItemStockTransactions", fields: [purchaseOrderItemId], references: [id])
+
+  @@index([locationId, occurredAt], map: "stock_transactions_location_id_occurred_at_idx")
+  @@map("stock_transactions")
+}
+
+model PurchaseOrder {
+  id            String              @id @default(uuid()) @db.Uuid
+  locationId    String              @map("location_id") @db.Uuid
+  supplierId    String              @map("supplier_id") @db.Uuid
+  orderedById   String?             @map("ordered_by_id") @db.Uuid
+  approvedById  String?             @map("approved_by_id") @db.Uuid
+  status        PurchaseOrderStatus @default(DRAFT)
+  referenceCode String?             @map("reference_code")
+  expectedAt    DateTime?           @map("expected_at")
+  submittedAt   DateTime?           @map("submitted_at")
+  receivedAt    DateTime?           @map("received_at")
+  notes         String?
+  createdAt     DateTime            @default(now()) @map("created_at")
+  updatedAt     DateTime            @updatedAt @map("updated_at")
+  deletedAt     DateTime?           @map("deleted_at")
+  location      Location            @relation(fields: [locationId], references: [id])
+  supplier      Supplier            @relation(fields: [supplierId], references: [id])
+  orderedBy     User?               @relation("PurchaseOrderOrderedBy", fields: [orderedById], references: [id])
+  approvedBy    User?               @relation("PurchaseOrderApprovedBy", fields: [approvedById], references: [id])
+  items         PurchaseOrderItem[]
+
+  @@unique([locationId, referenceCode], map: "purchase_orders_location_id_reference_code_key")
+  @@map("purchase_orders")
+}
+
+model PurchaseOrderItem {
+  id                String             @id @default(uuid()) @db.Uuid
+  purchaseOrderId   String             @map("purchase_order_id") @db.Uuid
+  locationItemId    String             @map("location_item_id") @db.Uuid
+  inventoryItemId   String             @map("inventory_item_id") @db.Uuid
+  quantityOrdered   Decimal            @map("quantity_ordered") @db.Decimal(18, 4)
+  quantityReceived  Decimal            @default(0) @map("quantity_received") @db.Decimal(18, 4)
+  unitCost          Decimal?           @map("unit_cost") @db.Decimal(12, 2)
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
+  purchaseOrder     PurchaseOrder      @relation(fields: [purchaseOrderId], references: [id])
+  locationItem      LocationItem       @relation(fields: [locationItemId], references: [id])
+  inventoryItem     InventoryItem      @relation(fields: [inventoryItemId], references: [id])
+  stockTransactions StockTransaction[] @relation("PurchaseOrderItemStockTransactions")
+
+  @@unique([purchaseOrderId, locationItemId], map: "purchase_order_items_purchase_order_id_location_item_id_key")
+  @@map("purchase_order_items")
+}
+
+model Alert {
+  id               String              @id @default(uuid()) @db.Uuid
+  locationId       String              @map("location_id") @db.Uuid
+  locationItemId   String?             @map("location_item_id") @db.Uuid
+  alertType        AlertType           @map("alert_type")
+  severity         AlertSeverity       @default(WARNING)
+  status           AlertStatus         @default(OPEN)
+  title            String
+  message          String
+  acknowledgedById String?             @map("acknowledged_by_id") @db.Uuid
+  triggeredAt      DateTime            @default(now()) @map("triggered_at")
+  resolvedAt       DateTime?           @map("resolved_at")
+  metadata         Json?
+  createdAt        DateTime            @default(now()) @map("created_at")
+  updatedAt        DateTime            @updatedAt @map("updated_at")
+  location         Location            @relation(fields: [locationId], references: [id])
+  locationItem     LocationItem?       @relation(fields: [locationItemId], references: [id])
+  acknowledgedBy   User?               @relation("AlertAcknowledgedBy", fields: [acknowledgedById], references: [id])
+  notifications    NotificationQueue[]
+
+  @@index([locationId, status], map: "alerts_location_id_status_idx")
+  @@map("alerts")
+}
+
+model AuditLog {
+  id          String      @id @default(uuid()) @db.Uuid
+  entityName  String      @map("entity_name")
+  entityId    String      @map("entity_id") @db.Uuid
+  action      AuditAction
+  userId      String?     @map("user_id") @db.Uuid
+  requestId   String?     @map("request_id")
+  changedData Json?       @map("changed_data")
+  metadata    Json?
+  createdAt   DateTime    @default(now()) @map("created_at")
+  user        User?       @relation(fields: [userId], references: [id])
+
+  @@index([entityName, entityId], map: "audit_logs_entity_name_entity_id_idx")
+  @@map("audit_logs")
+}
+
+model NotificationQueue {
+  id          String              @id @default(uuid()) @db.Uuid
+  alertId     String?             @map("alert_id") @db.Uuid
+  locationId  String?             @map("location_id") @db.Uuid
+  channel     NotificationChannel
+  status      NotificationStatus  @default(PENDING)
+  payload     Json
+  attempts    Int                 @default(0)
+  maxAttempts Int                 @default(3) @map("max_attempts")
+  lastError   String?             @map("last_error")
+  scheduledAt DateTime?           @map("scheduled_at")
+  sentAt      DateTime?           @map("sent_at")
+  createdAt   DateTime            @default(now()) @map("created_at")
+  updatedAt   DateTime            @updatedAt @map("updated_at")
+  alert       Alert?              @relation(fields: [alertId], references: [id])
+  location    Location?           @relation(fields: [locationId], references: [id])
+
+  @@index([status, scheduledAt], map: "notification_queue_status_scheduled_at_idx")
+  @@map("notification_queue")
 }
