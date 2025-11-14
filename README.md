@@ -42,6 +42,10 @@ The API service uses **Prisma** to manage the relational schema, migrations, and
 ### Running migrations locally
 
 ```bash
+# Using the migration script
+./scripts/run_migrations.sh local
+
+# Or manually
 export DATABASE_URL="postgresql://user:password@localhost:5432/appdb"
 cd api
 npm install
@@ -61,13 +65,154 @@ The migration script will apply the pending Prisma migrations and populate basel
 - [`docs/database-schema.md`](docs/database-schema.md) – entity relationships, constraints, and auditing approach.
 - [`docs/database-migrations.md`](docs/database-migrations.md) – detailed guidance on the Prisma-based migration workflow, environment-specific commands, and troubleshooting tips.
 
+## Environment Configuration & Secrets
+
+### Environment Files
+
+The repository includes environment configuration files for different deployment scenarios:
+
+- `.env.example` - Default development configuration
+- `.env.local.example` - Local development overrides
+- `.env.staging.example` - Staging environment template
+- `.env.production.example` - Production environment template
+
+### Setting Up Locally
+
+```bash
+# Copy the example file
+cp .env.example .env
+
+# Edit with your local values
+nano .env
+```
+
+**⚠️ IMPORTANT:** Never commit `.env` files to git. They are automatically ignored in `.gitignore`.
+
+### GitHub Secrets for CI/CD
+
+For automated deployments, configure secrets in GitHub:
+
+**Settings → Secrets and variables → Actions**
+
+Required secrets:
+
+- `STAGING_DATABASE_URL` - PostgreSQL connection string for staging
+- `STAGING_REDIS_URL` - Redis connection string for staging
+- `PRODUCTION_DATABASE_URL` - PostgreSQL connection string for production
+- `PRODUCTION_REDIS_URL` - Redis connection string for production
+- `STAGING_JWT_ACCESS_SECRET` - JWT secret for staging
+- `PRODUCTION_JWT_ACCESS_SECRET` - JWT secret for production
+- `STAGING_KUBECONFIG` - Kubernetes config (base64) for staging
+- `PRODUCTION_KUBECONFIG` - Kubernetes config (base64) for production
+
+### Secrets Best Practices
+
+1. **Rotation:** Rotate secrets every 90 days
+2. **Never commit:** Never hardcode secrets in source files
+3. **Minimal scope:** Give each secret only required permissions
+4. **Audit:** Monitor and log secret access
+5. **Environment-specific:** Use different secrets for each environment
+
+See [`docs/deployment-guide.md`](docs/deployment-guide.md) for detailed secrets management.
+
+## Logs Management
+
+### Local Development Logs
+
+```bash
+# View all service logs
+docker compose logs -f
+
+# View specific service
+docker compose logs -f api
+docker compose logs -f web
+docker compose logs -f postgres
+
+# Save logs to file
+docker compose logs > logs.txt
+```
+
+### Production Logs
+
+For production deployments, logs are retrieved from Kubernetes:
+
+```bash
+# API service logs
+kubectl logs deployment/app-api -n production --tail=100 -f
+
+# Web service logs
+kubectl logs deployment/app-web -n production --tail=100 -f
+
+# Previous logs (crashed containers)
+kubectl logs deployment/app-api -n production --previous
+```
+
+### Log Aggregation
+
+For production environments, implement centralized logging with:
+- **Elasticsearch + Kibana** - Search and analyze logs
+- **Datadog** - Monitoring and alerting
+- **CloudWatch** - AWS managed logging
+- **Stackdriver** - GCP managed logging
+
+### Logging Best Practices
+
+- Use **structured logging** (JSON format)
+- Include **request IDs** and **trace IDs**
+- Use appropriate **log levels** (error, warn, info, debug)
+- Never log **sensitive data** (passwords, tokens, PII)
+
 ## CI/CD Pipeline
 
-- Triggered on pushes to `main` and pull requests targeting `main`.
-- Runs unit tests for both services, builds Docker images, executes migrations, and deploys to the `staging` environment via Helm.
-- Requires gated approvals configured in the GitHub `staging` environment before deployment steps run.
+The CI/CD pipeline (`.github/workflows/ci.yml` and `.github/workflows/ci-cd.yml`) includes:
 
-See [`docs/deployment.md`](docs/deployment.md) for detailed documentation, including environment variable references, secrets management, migrations, and rollback procedures.
+- **Lint & Format Check** - ESLint and Prettier
+- **Type Checking** - TypeScript validation
+- **Unit Tests** - Jest test suite
+- **Build** - Docker image builds
+- **Integration Tests** - End-to-end tests (Playwright)
+- **Deploy** - Automatic deployment to staging/production
+
+### Pipeline Steps
+
+1. **Lint** - Check code style and format
+2. **Type Check** - Validate TypeScript types
+3. **Test** - Run unit and integration tests
+4. **Build** - Build Docker images
+5. **Push** - Push to container registry
+6. **Migrate** - Run database migrations
+7. **Deploy Staging** - Deploy to staging environment
+8. **Deploy Production** - Deploy to production (requires approval)
+
+### Deployment Considerations
+
+#### Separate API and Worker Processes
+
+In production, run separate deployments:
+
+- **API Service:** Handles HTTP requests (scale horizontally based on traffic)
+- **Worker Service:** Processes background jobs from queue
+
+#### Cron Jobs Alternative
+
+If separate workers aren't feasible, use Kubernetes CronJobs for:
+- Database cleanup
+- Report generation
+- Cache refresh
+- Backups
+
+See [`docs/deployment-guide.md`](docs/deployment-guide.md) for detailed instructions.
+
+## Documentation
+
+See additional documentation:
+
+- [`docs/deployment.md`](docs/deployment.md) - Original deployment guide with Helm
+- [`docs/deployment-guide.md`](docs/deployment-guide.md) - Complete deployment, logs, and secrets guide
+- [`docs/ci-cd-pipeline.md`](docs/ci-cd-pipeline.md) - CI/CD workflow deep dive
+- [`docs/kubernetes-secrets.md`](docs/kubernetes-secrets.md) - Kubernetes secret management
+- [`docs/architecture.md`](docs/architecture.md) - System architecture overview
+- [`docs/rollback-strategy.md`](docs/rollback-strategy.md) - Emergency rollback procedures
 # Monorepo
 
 A comprehensive monorepo using pnpm workspaces for managing multiple applications and shared packages.
