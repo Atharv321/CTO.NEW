@@ -1,6 +1,10 @@
 const express = require('express');
 const cors = require('cors');
 const authRoutes = require('./routes/auth');
+const suppliersRouter = require('./src/routes/suppliers');
+const purchaseOrdersRouter = require('./src/routes/purchaseOrders');
+const itemsRouter = require('./src/routes/items');
+const locationsRouter = require('./src/routes/locations');
 
 const createApp = () => {
   const app = express();
@@ -27,6 +31,11 @@ const createApp = () => {
     console.error(err.stack);
     res.status(500).json({ message: 'Internal server error' });
   });
+  // API routes
+  app.use('/api/items', itemsRouter);
+  app.use('/api/locations', locationsRouter);
+  app.use('/api/suppliers', suppliersRouter);
+  app.use('/api/purchase-orders', purchaseOrdersRouter);
 
   return app;
 };
