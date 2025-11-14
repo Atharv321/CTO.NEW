@@ -1,0 +1,38 @@
+replicaCount: 1
+
+api:
+  image:
+    tag: staging-latest
+  resources:
+    limits:
+      cpu: 250m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+web:
+  image:
+    tag: staging-latest
+  service:
+    type: ClusterIP
+  resources:
+    limits:
+      cpu: 250m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+ingress:
+  enabled: true
+  hosts:
+    - host: staging.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+
+database:
+  existingSecret:
+    name: app-staging-database
+    key: database-url
