@@ -21,5 +21,8 @@
   },
   "include": ["apps/**/*", "packages/**/*"],
   "exclude": ["node_modules", "**/dist", "**/.next"],
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["src"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

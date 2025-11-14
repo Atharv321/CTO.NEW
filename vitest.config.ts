@@ -1,11 +1,3 @@
-import { defineConfig } from 'vitest/config';
-
-export default defineConfig({
-  test: {
-    globals: true,
-    environment: 'node',
-  },
-});
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 
