@@ -1,31 +1,46 @@
-import '@testing-library/jest-dom'
-import { expect, afterEach, vi } from 'vitest'
-import { cleanup } from '@testing-library/react'
+import '@testing-library/jest-dom';
+import { vi } from 'vitest';
 
-// Cleanup after each test
-afterEach(() => {
-  cleanup()
-})
+// Create a localStorage mock that actually stores data
+const createLocalStorageMock = () => {
+  let store: Record<string, string> = {};
 
-// Mock HTMLMediaElement
-Object.defineProperty(HTMLMediaElement.prototype, 'muted', {
-  set: vi.fn(),
-  get: vi.fn(),
-})
+  return {
+    getItem: vi.fn((key: string) => store[key] || null),
+    setItem: vi.fn((key: string, value: string) => {
+      store[key] = value;
+    }),
+    removeItem: vi.fn((key: string) => {
+      delete store[key];
+    }),
+    clear: vi.fn(() => {
+      store = {};
+    }),
+    // Helper for tests
+    __getStore: () => ({ ...store }),
+    __setStore: (newStore: Record<string, string>) => {
+      store = { ...newStore };
+    }
+  };
+};
 
-Object.defineProperty(HTMLMediaElement.prototype, 'play', {
-  value: vi.fn(),
-})
+const localStorageMock = createLocalStorageMock();
+vi.stubGlobal('localStorage', localStorageMock);
 
-Object.defineProperty(HTMLMediaElement.prototype, 'pause', {
-  value: vi.fn(),
-})
+// Reset localStorage before each test
+beforeEach(() => {
+  localStorageMock.clear();
+});
 
-// Mock navigator.mediaDevices
-Object.defineProperty(navigator, 'mediaDevices', {
-  value: {
-    getUserMedia: vi.fn(),
-    enumerateDevices: vi.fn(),
-  },
-  configurable: true,
-})
+// Mock btoa for JWT testing
+vi.stubGlobal('btoa', (str: string) => {
+  return Buffer.from(str).toString('base64');
+});
+
+// Mock atob for JWT testing
+vi.stubGlobal('atob', (str: string) => {
+  return Buffer.from(str, 'base64').toString();
+});
+
+// Export the mock for use in tests
+export { localStorageMock };
