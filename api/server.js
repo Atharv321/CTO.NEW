@@ -1,5 +1,9 @@
 const express = require('express');
 const cors = require('cors');
+require('dotenv').config();
+
+const bookingsRouter = require('./src/routes/bookings');
+const notificationsRouter = require('./src/routes/notifications');
 const { ApolloServer } = require('@apollo/server');
 const { expressMiddleware } = require('@apollo/server/express4');
 const http = require('http');
@@ -64,6 +68,7 @@ const createApp = async () => {
   // Middleware
   app.use(cors());
   app.use(express.json());
+  
   app.use(express.urlencoded({ extended: true }));
 
   // Apply rate limiting to all API routes
@@ -80,6 +85,8 @@ const createApp = async () => {
     res.json({ status: 'OK' });
   });
 
+  app.use('/api/bookings', bookingsRouter);
+  app.use('/api/notifications', notificationsRouter);
   // GraphQL endpoint temporarily disabled
   // app.use('/graphql', expressMiddleware(server));
   // API routes
