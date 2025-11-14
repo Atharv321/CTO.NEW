@@ -1,9 +1,18 @@
+import { Suspense } from 'react';
+import { RouterProvider } from 'react-router-dom';
+import { AppProvider } from './app/providers/AppProvider';
+import { router } from './app/router';
+import { LoadingSpinner } from '@components/common/LoadingSpinner';
+import '@mantine/core/styles.css';
+import '@mantine/notifications/styles.css';
+
 function App() {
   return (
-    <div>
-      <h1>Welcome to Monorepo Web App</h1>
-      <p>This is the frontend application.</p>
-    </div>
+    <AppProvider>
+      <Suspense fallback={<LoadingSpinner fullPage />}>
+        <RouterProvider router={router} />
+      </Suspense>
+    </AppProvider>
   );
 }
 

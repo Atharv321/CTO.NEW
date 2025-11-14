@@ -4,7 +4,24 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Monorepo Web App</title>
+    <meta name="description" content="Barber booking system - Book your next appointment" />
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme-preferences');
+          var parsed = stored ? JSON.parse(stored) : null;
+          var scheme = parsed?.state?.colorScheme;
+          if (!scheme) {
+            var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            scheme = prefersDark ? 'dark' : 'light';
+          }
+          document.documentElement.setAttribute('data-mantine-color-scheme', scheme);
+        } catch (error) {
+          console.warn('Unable to restore color scheme from storage', error);
+        }
+      })();
+    </script>
+    <title>Barber Booking</title>
   </head>
   <body>
     <div id="root"></div>

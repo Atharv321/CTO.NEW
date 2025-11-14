@@ -4,7 +4,21 @@
     "outDir": "./dist",
     "rootDir": "./src",
     "declaration": false,
-    "types": ["vite/client", "node"]
+    "types": ["vite/client", "node"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@components/*": ["./src/components/*"],
+      "@pages/*": ["./src/pages/*"],
+      "@hooks/*": ["./src/hooks/*"],
+      "@store/*": ["./src/store/*"],
+      "@api/*": ["./src/api/*"],
+      "@app/*": ["./src/app/*"],
+      "@utils/*": ["./src/utils/*"],
+      "@types/*": ["./src/types/*"],
+      "@theme/*": ["./src/theme/*"],
+      "@config/*": ["./src/config/*"]
+    }
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist"]
