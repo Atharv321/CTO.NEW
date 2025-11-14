@@ -1,13 +1,22 @@
 const express = require('express');
 const cors = require('cors');
+require('dotenv').config();
+
+const bookingsRouter = require('./src/routes/bookings');
+const notificationsRouter = require('./src/routes/notifications');
 
 const createApp = () => {
   const app = express();
 
   app.use(cors());
+  app.use(express.json());
+  
   app.get('/health', (req, res) => {
     res.json({ status: 'OK' });
   });
+
+  app.use('/api/bookings', bookingsRouter);
+  app.use('/api/notifications', notificationsRouter);
 
   return app;
 };
