@@ -1,3 +1,6 @@
+require('dotenv').config();
+const { runMigrations } = require('../src/db/migrations');
+
 const url = process.env.DATABASE_URL || 'postgresql://localhost:5432/appdb';
 
 const sanitize = (connectionString) => {
@@ -12,4 +15,14 @@ const sanitize = (connectionString) => {
   }
 };
 
-console.log(`Running migrations against ${sanitize(url)} (placeholder).`);
+console.log(`Running migrations against ${sanitize(url)}`);
+
+runMigrations()
+  .then(() => {
+    console.log('Migrations completed successfully');
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error('Migration failed:', error);
+    process.exit(1);
+  });
