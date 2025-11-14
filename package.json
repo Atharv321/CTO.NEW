@@ -9,8 +9,12 @@
     "pnpm": ">=8.0.0"
   },
   "workspaces": [
-    "apps/*",
-    "packages/*"
+    "apps/web",
+    "apps/api", 
+    "apps/worker",
+    "packages/types-package",
+    "packages/utils-package",
+    "packages/alerting-service"
   ],
   "scripts": {
     "prepare": "husky install",

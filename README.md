@@ -1,737 +1,337 @@
-# Sample Deployment Pipeline
+# Supplier Management Monorepo
 
-This repository provides a reference implementation for a full CI/CD pipeline deploying a simple two-service application (API + Web).
+A modern full-stack supplier management system built with TypeScript, organized as a monorepo using pnpm workspaces.
 
-## Project Structure
+## 🏗️ Architecture
 
-- `api/` – Node.js API service
-- `web/` – Node.js web frontend
-- `docker-compose.yml` – Local development stack
-- `docker-compose.prod.yml` – Production-ready stack using pre-built images
-- `helm/` – Helm chart for Kubernetes deployments
-- `.github/workflows/ci-cd.yml` – GitHub Actions workflow for CI/CD
-- `docs/deployment.md` – Detailed deployment guide
-- `docs/ci-cd-pipeline.md` – CI/CD workflow deep dive
-- `docs/kubernetes-secrets.md` – Kubernetes secret management
-- `docs/architecture.md` – System architecture overview
-- `scripts/` – Utility scripts (migrations, rollback)
+This monorepo contains three main applications and shared packages:
 
-## Getting Started
+### Applications
 
-1. Copy `.env.example` to `.env` and adjust the values as needed.
-2. Install dependencies with `make install` (optional but recommended for running tests locally).
-3. Run `make up` to start the full stack locally.
-4. Visit the web UI at `http://localhost:3000` and the API health endpoint at `http://localhost:3001/health`.
+- **`apps/web`** - Next.js frontend with App Router
+- **`apps/api`** - NestJS backend API service  
+- **`apps/worker`** - Background worker service for scheduled jobs
 
-### Useful Commands
+### Shared Packages
 
-| Command | Description |
-| ------- | ----------- |
-| `make build` | Build Docker images for local services |
-| `make up` / `make down` | Start or stop the Docker Compose stack |
-| `make clean` | Stop services and remove volumes |
-| `make test` | Run unit tests for API and Web |
-| `make migrate` | Execute local database migrations |
-| `make logs` | Tail logs for all services |
-| `make rollback` | Trigger staging rollback via Helm |
+- **`packages/types-package`** - Shared TypeScript types and interfaces
+- **`packages/utils-package`** - Shared utility functions
+- **`packages/alerting-service`** - Alerting and notification service
 
-## Database & Migrations
+## 🚀 Tech Stack
 
-The API service uses **Prisma** to manage the relational schema, migrations, and seed data. The data model lives in [`api/prisma/schema.prisma`](api/prisma/schema.prisma); generated SQL migrations are stored in [`api/prisma/migrations`](api/prisma/migrations).
+### Frontend (`apps/web`)
+- **Framework**: Next.js 16 with App Router
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS + Mantine UI
+- **State Management**: Zustand + React Query
+- **Testing**: Vitest + React Testing Library
 
-### Running migrations locally
+### API (`apps/api`)
+- **Framework**: NestJS
+- **Language**: TypeScript
+- **Database**: PostgreSQL with Prisma ORM
+- **Authentication**: JWT with refresh tokens
+- **Testing**: Vitest
+- **Documentation**: Swagger/OpenAPI
 
-```bash
-export DATABASE_URL="postgresql://user:password@localhost:5432/appdb"
-cd api
-npm install
-npm run migrate
-```
+### Worker (`apps/worker`)
+- **Runtime**: Node.js
+- **Language**: TypeScript
+- **Scheduler**: node-cron
+- **Logging**: Winston
+- **Testing**: Vitest
 
-The migration script will apply the pending Prisma migrations and populate baseline seed data (roles and sample locations). Set `SKIP_DB_SEED=true` when running the script if you want to bypass the seed step.
+## 📋 Prerequisites
 
-### Creating a new migration
+- Node.js >= 18.0.0
+- pnpm >= 8.0.0
+- PostgreSQL (for API database)
 
-1. Update the Prisma schema (`api/prisma/schema.prisma`).
-2. Run `npx prisma migrate dev --name <change-name>` inside the `api` directory. Use `--create-only` if you want to review the SQL without executing it.
-3. Commit both the schema change and the generated migration folder.
+## 🛠️ Setup
 
-### Additional documentation
-
-- [`docs/database-schema.md`](docs/database-schema.md) – entity relationships, constraints, and auditing approach.
-- [`docs/database-migrations.md`](docs/database-migrations.md) – detailed guidance on the Prisma-based migration workflow, environment-specific commands, and troubleshooting tips.
-
-## CI/CD Pipeline
-
-- Triggered on pushes to `main` and pull requests targeting `main`.
-- Runs unit tests for both services, builds Docker images, executes migrations, and deploys to the `staging` environment via Helm.
-- Requires gated approvals configured in the GitHub `staging` environment before deployment steps run.
-
-See [`docs/deployment.md`](docs/deployment.md) for detailed documentation, including environment variable references, secrets management, migrations, and rollback procedures.
-# Monorepo
-
-A comprehensive monorepo using pnpm workspaces for managing multiple applications and shared packages.
-# Inventory Barcode/QR Code Scanner
-
-A browser-based inventory management system with integrated barcode/QR code scanning capabilities, fallback manual entry, and mobile-friendly interface.
-
-## Features
-
-- **Browser-Based Scanning**: Uses `@zxing/library` for robust barcode and QR code detection
-- **Multiple Format Support**: Recognizes CODE_128, QR codes, and other common formats
-- **Fallback Manual Entry**: Graceful fallback when camera is unavailable
-- **Mobile-Friendly**: Fully responsive design optimized for phones, tablets, and desktops
-- **Accessibility**: WCAG 2.1 compliant with proper ARIA labels and keyboard navigation
-- **Real-Time Inventory Management**: Add, update, and remove items instantly
-- **Item Database**: Pre-configured inventory with automatic lookup
-- **Comprehensive Testing**: Integration tests with mocked scanner input
-
-## Getting Started
-
-### Installation
+### 1. Clone and Install Dependencies
 
 ```bash
-npm install
+git clone <repository-url>
+cd supplier-management-monorepo
+pnpm install
 ```
 
-### Development
+### 2. Environment Configuration
+
+Copy the example environment files and configure them:
 
 ```bash
-npm run dev
+# For API
+cp apps/api/.env.example apps/api/.env
+
+# For Worker
+cp apps/worker/.env.example apps/worker/.env
+
+# For Web
+cp apps/web/.env.example apps/web/.env
 ```
 
-The application will be available at `http://localhost:3000`
+### 3. Database Setup
 
-### Building
+The API uses PostgreSQL. Set up your database and run migrations:
 
 ```bash
-npm run build
+cd apps/api
+pnpm prisma migrate dev
+pnpm prisma generate
 ```
 
-### Testing
+### 4. Start Development Services
+
+Start all applications in parallel:
+
+```bash
+pnpm dev
+```
+
+Or start individual services:
+
+```bash
+# Start Next.js frontend (http://localhost:3000)
+pnpm --filter @app/web dev
+
+# Start NestJS API (http://localhost:3001)
+pnpm --filter @app/api start:dev
+
+# Start Worker service
+pnpm --filter @app/worker dev
+```
+
+## 📦 Available Scripts
+
+### Root Level Scripts
+
+- `pnpm dev` - Start all applications in development mode
+- `pnpm build` - Build all applications and packages
+- `pnpm test` - Run all unit tests
+- `pnpm test:coverage` - Generate coverage reports
+- `pnpm test:e2e` - Run end-to-end tests
+- `pnpm lint` - Lint all packages
+- `pnpm lint:fix` - Fix linting issues
+- `pnpm format` - Format code with Prettier
+- `pnpm type-check` - Type check all packages
+- `pnpm clean` - Clean all build artifacts and dependencies
+
+### Application-Specific Scripts
+
+Each application has its own set of scripts. See individual `package.json` files for details.
+
+## 🏛️ Project Structure
+
+```
+supplier-management-monorepo/
+├── apps/
+│   ├── web/                 # Next.js frontend
+│   │   ├── src/
+│   │   │   ├── app/        # App Router pages
+│   │   │   ├── components/ # Reusable components
+│   │   │   ├── hooks/      # Custom hooks
+│   │   │   ├── lib/        # Utilities
+│   │   │   └── types/      # Type definitions
+│   │   ├── public/         # Static assets
+│   │   └── package.json
+│   ├── api/                 # NestJS backend
+│   │   ├── src/
+│   │   │   ├── modules/    # Feature modules
+│   │   │   ├── common/     # Shared modules
+│   │   │   ├── config/     # Configuration
+│   │   │   └── main.ts     # Application entry
+│   │   ├── test/           # Test files
+│   │   └── package.json
+│   └── worker/              # Background worker
+│       ├── src/
+│       │   ├── jobs/       # Scheduled jobs
+│       │   ├── services/   # Worker services
+│       │   ├── config/     # Configuration
+│       │   └── index.ts     # Worker entry
+│       └── package.json
+├── packages/
+│   ├── types-package/       # Shared types
+│   │   ├── index.ts        # Type exports
+│   │   └── package.json
+│   ├── utils-package/       # Shared utilities
+│   │   ├── index.ts        # Utility exports
+│   │   └── package.json
+│   └── alerting-service/    # Alerting service
+│       └── package.json
+├── docs/                    # Documentation
+├── .github/                 # GitHub workflows
+├── docker-compose.yml       # Local development
+├── package.json            # Root package configuration
+└── pnpm-workspace.yaml     # Workspace configuration
+```
+
+## 🔧 Development Workflow
+
+### Adding New Dependencies
+
+#### Application-Specific Dependencies
+```bash
+# Add to web app
+pnpm --filter @app/web add <package>
+
+# Add to API
+pnpm --filter @app/api add <package>
+
+# Add to worker
+pnpm --filter @app/worker add <package>
+```
+
+#### Shared Dependencies
+```bash
+# Add to shared utils
+pnpm --filter @shared/utils add <package>
+
+# Add to shared types (usually just devDependencies)
+pnpm --filter @shared/types add -D <package>
+```
+
+### Creating New Packages
+
+1. Create a new directory in `packages/`
+2. Add a `package.json` with the appropriate workspace configuration
+3. Update the root `package.json` workspaces array
+4. Export your package's main functionality from `index.ts`
+
+### Running Tests
 
 ```bash
 # Run all tests
-npm test
+pnpm test
 
-# Watch mode
-npm test -- --watch
+# Run tests for specific package
+pnpm --filter @app/web test
 
-# Coverage report
-npm test:coverage
+# Run tests in watch mode
+pnpm --filter @app/api test:watch
 
-# UI dashboard
-npm test:ui
+# Generate coverage
+pnpm test:coverage
 ```
 
-## Architecture
+## 🐳 Docker Support
 
-### Components
-
-#### `BarcodeScanner`
-The main scanning component that handles:
-- Video stream capture from device camera
-- Real-time barcode/QR code detection
-- Error handling and camera permission management
-- Manual entry fallback form
-- Accessibility features
-
-**Props:**
-- `onScan`: Callback when a barcode is scanned
-- `onManualEntry`: Callback for manual barcode entry
-- `isActive`: Boolean to control scanning state
-- `ariaLabel`: Custom ARIA label for accessibility
-
-#### `InventoryManager`
-Main container component managing:
-- Item inventory state
-- Barcode scanning orchestration
-- Item quantity adjustments
-- Remove functionality
-- Inventory summary display
-
-### Hooks
-
-#### `useBarcodeScan`
-Custom React hook for barcode scanning logic:
-- Manages camera stream and device access
-- Handles `BrowserMultiFormatReader` lifecycle
-- Provides scan result callbacks
-- Cleans up resources on unmount
-
-## Usage Example
-
-```tsx
-import { InventoryManager } from './components/InventoryManager'
-
-export default function App() {
-  return <InventoryManager />
-}
-```
-
-Or use components individually:
-
-```tsx
-import { BarcodeScanner } from './components/BarcodeScanner'
-
-function MyComponent() {
-  const handleScan = (result) => {
-    console.log('Scanned:', result.data, result.format)
-  }
-
-  return (
-    <BarcodeScanner
-      onScan={handleScan}
-      ariaLabel="Item scanner"
-    />
-  )
-}
-```
-
-## Scanner Database
-
-The scanner comes with a pre-configured inventory database. Supported test barcodes:
-
-| Barcode | Item Name |
-|---------|-----------|
-| 123456789 | Widget A |
-| 987654321 | Widget B |
-| 555555555 | Gadget X |
-| QR_001 | Premium Tool |
-
-Manual entries for unknown barcodes will display a "not found" message but can be extended by modifying the database in `InventoryManager.tsx`.
-
-## Browser Support
-
-- **Chrome/Edge**: Full support including camera access
-- **Firefox**: Full support including camera access
-- **Safari**: Full support with iOS 14.5+
-- **Mobile Browsers**: Optimized for both Android and iOS
-
-**Required Permissions:**
-- Camera access (HTTPS required in production)
-
-## Accessibility
-
-The application implements WCAG 2.1 Level AA standards:
-
-- **Keyboard Navigation**: All controls are keyboard accessible
-- **Screen Reader Support**: Proper ARIA labels and live regions
-- **Color Contrast**: Meets WCAG AA contrast requirements
-- **Focus Management**: Clear focus indicators
-- **Reduced Motion**: Respects `prefers-reduced-motion` preference
-- **Touch Targets**: Minimum 44x44px for mobile
-- **Form Labels**: Associated labels for all inputs
-
-### Testing for Accessibility
-
-Test keyboard navigation:
-```bash
-# Tab through all interactive elements
-# Verify focus is visible and logical
-```
-
-Test with screen readers:
-```bash
-# Use NVDA (Windows), JAWS, or VoiceOver (macOS/iOS)
-# Verify all content is announced properly
-```
-
-## Testing
-
-### Test Coverage
-
-The project includes comprehensive test suites:
-
-1. **Integration Tests** (`integration.test.tsx`)
-   - End-to-end scanning workflows
-   - Manual entry fallback
-   - Inventory management operations
-   - Error handling
-
-2. **Component Tests** (`BarcodeScanner.test.tsx`)
-   - Scanner UI rendering
-   - Manual entry form interaction
-   - Accessibility features
-   - State management
-
-3. **Hook Tests** (`hooks.test.ts`)
-   - Camera stream lifecycle
-   - Scan result handling
-   - Error scenarios
-   - Resource cleanup
-
-### Mock Scanner Input
-
-Tests use mocked scanner results to simulate barcode detection:
-
-```typescript
-import { createMockScanResult } from './test/mocks'
-
-const mockResult = createMockScanResult('123456789', 'CODE_128')
-// Use in tests...
-```
-
-### Running Specific Tests
+The monorepo includes Docker configuration for local development and production:
 
 ```bash
-# Run integration tests only
-npm test -- integration.test
-
-# Run with pattern
-npm test -- --grep "manual entry"
-
-# Watch specific file
-npm test -- --watch BarcodeScanner.test.tsx
-```
-
-## API Integration
-
-The system supports API lookup endpoints for barcode validation. To add API support:
-
-1. Create an API service module
-2. Update `InventoryManager` to call the API on scan
-3. Handle async item lookups
-
-Example:
-
-```typescript
-async function lookupBarcode(barcode: string) {
-  const response = await fetch(`/api/items/${barcode}`)
-  return response.json()
-}
-```
-
-## Mobile Optimization
-
-### Touch Optimization
-- Large touch targets (44x44px minimum)
-- Optimized spacing for mobile devices
-- Landscape/portrait orientation support
-
-### Performance
-- Efficient re-renders using React hooks
-- Minimal camera stream operations
-- Optimized CSS for mobile
-
-### Responsiveness Breakpoints
-- **Desktop**: 1200px and above
-- **Tablet**: 768px to 1200px
-- **Mobile**: Below 768px
-- **Small Mobile**: Below 480px
-
-## Styling
-
-The application uses CSS with:
-- CSS variables for theming
-- Mobile-first responsive design
-- Smooth animations and transitions
-- Color-blind friendly palette
-
-### Colors
-- Primary: `#4caf50` (Green)
-- Error: `#ef5350` (Red)
-- Text Primary: `#333`
-- Text Secondary: `#666`
-- Background: `#fafafa`
-
-## Error Handling
-
-The scanner handles various error scenarios:
-
-- **Camera Permission Denied**: Shows manual entry fallback
-- **No Camera Available**: Displays error message with fallback option
-- **Invalid Barcode Format**: Graceful handling with user feedback
-- **Unknown Barcode**: Notifies user with scanned value
-- **Network Errors**: Handled in API integration layer
-
-## Performance Considerations
-
-- Camera stream cleanup on component unmount
-- Efficient state updates using React hooks
-- Minimal re-renders with proper prop memoization
-- Optimized CSS animations with `will-change` hints
-
-## Known Limitations
-
-- Requires HTTPS in production for camera access
-- Some older browsers may have limited barcode format support
-- Works best with adequate lighting for scanning
-- Mobile browsers may have different camera permission UX
-
-## Future Enhancements
-
-- [ ] Batch import/export functionality
-- [ ] Cloud sync and storage
-- [ ] Advanced analytics and reporting
-- [ ] Multi-user support with authentication
-- [ ] Offline mode with sync
-- [ ] Custom item database configuration
-- [ ] Receipt printing
-- [ ] Barcode generation
-
-## Contributing
-
-When contributing, ensure:
-
-1. All tests pass: `npm test`
-2. Code is properly typed: `npm run type-check`
-3. Linting passes: `npm run lint`
-4. Accessibility is maintained
-5. Mobile responsiveness is tested
-
-## License
-
-[Add your license here]
-
-## Support
-
-For issues or questions:
-1. Check the troubleshooting section
-2. Review test files for usage examples
-3. Inspect browser console for error messages
-4. Verify camera permissions are granted
-
-## Troubleshooting
-
-### Camera Not Working
-- Check browser permissions
-- Ensure HTTPS is used (required for camera access)
-- Try a different browser
-- Verify camera is available and not in use
-
-### Scanning Not Detecting Codes
-- Improve lighting conditions
-- Ensure barcode/QR code is clear and not damaged
-- Try different angles
-- Use manual entry as fallback
-
-### Manual Entry Not Appearing
-- Ensure camera permission error occurred
-- Or click "Use Manual Entry Instead" button
-- Check browser console for errors
-
-### Tests Failing
-- Clear `node_modules` and reinstall: `rm -rf node_modules && npm install`
-- Ensure Node.js version is 16+
-- Check that all dependencies installed correctly
-# Barber Booking System
-
-A comprehensive barber booking platform with customer-facing UI, web application, and backend API.
-
-## Project Structure
-
-```
-├── apps/
-│   ├── customer-booking-ui/     # Next.js customer-facing application
-│   └── web/                     # Vite + React main web application
-│   ├── api/              # Backend API service
-│   └── web/              # Frontend web application
-├── packages/
-│   └── shared/           # Shared utilities and types
-├── docker-compose.yml    # Local development environment
-└── package.json          # Root workspace configuration
-```
-
-│   └── customer-booking-ui/     # Next.js customer-facing application
-├── packages/
-│   └── shared/                   # Shared types and utilities (future)
-└── package.json                  # Root monorepo package
-```
-
-## Technologies
-
-### Customer Booking UI
-- **Framework**: Next.js 14, React 18, TypeScript
-- **State Management**: TanStack React Query v5
-- **Forms**: React Hook Form with Zod validation
-- **Styling**: CSS Modules with mobile-responsive design
-- **API Client**: Axios
-
-### Web Application
-- **Framework**: Vite 5 + React 18 + TypeScript
-- **UI Library**: Mantine UI 7
-- **State Management**: Zustand + TanStack React Query v5
-- **Routing**: React Router v6
-- **Testing**: Vitest + React Testing Library
-- **Documentation**: Storybook 7
-- **API Client**: Axios
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18+ (see `.nvmrc` for the exact version)
-- pnpm 8+ (or npm/yarn if configured)
-- Node.js >= 18.0.0
-- pnpm >= 8.0.0
-
-### Installation
-
-```bash
-# Install dependencies
-pnpm install
-
-# Build all packages
-pnpm run build
-
-# Run tests
-pnpm run test
-
-# Run linter
-pnpm run lint
-
-# Format code
-pnpm run format
-```
-
-### Development
-
-```bash
-# Start development server for specific app
-pnpm --filter @app/api dev
-pnpm --filter @app/web dev
-
-# Start all development servers
-pnpm run dev
-```
-
-### Docker Development Environment
-
-```bash
-# Start local development environment
+# Start all services with Docker Compose
 docker-compose up -d
 
-# Stop the environment
+# View logs
+docker-compose logs -f
+
+# Stop services
 docker-compose down
 ```
 
-## Package Structure
+## 📚 API Documentation
 
-### Apps
+When the API service is running, visit:
+- **Swagger UI**: http://localhost:3001/api-docs
+- **Health Check**: http://localhost:3001/health
 
-- **@app/api**: Backend API service (Node.js/Express)
-- **@app/web**: Frontend web application (React)
+## 🔒 Environment Variables
 
-### Packages
+### API Environment Variables
+```env
+# Database
+DATABASE_URL="postgresql://username:password@localhost:5432/dbname"
 
-- **@shared/utils**: Shared utility functions
-- **@shared/types**: Shared TypeScript types
+# JWT
+JWT_SECRET="your-super-secret-jwt-key"
+JWT_REFRESH_SECRET="your-super-secret-refresh-key"
+JWT_ACCESS_EXPIRES_IN="15m"
+JWT_REFRESH_EXPIRES_IN="7d"
 
-## Available Scripts
+# Server
+PORT=3001
+NODE_ENV="development"
+```
 
-From the root directory, you can run:
+### Web Environment Variables
+```env
+# API
+NEXT_PUBLIC_API_URL="http://localhost:3001"
 
-- `pnpm install` - Install dependencies across all workspaces
-- `pnpm run build` - Build all packages
-- `pnpm run dev` - Run development mode for all apps
-- `pnpm run test` - Run tests across all packages
-- `pnpm run lint` - Run linting across all packages
-- `pnpm run format` - Format code across all packages
-- `pnpm run type-check` - Run TypeScript type checking
-- `pnpm --filter <workspace> <script>` - Run a script in a specific workspace
+# App
+NEXT_PUBLIC_APP_NAME="Supplier Management"
+```
 
-## Development Guidelines
+### Worker Environment Variables
+```env
+# Logging
+LOG_LEVEL="info"
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for contribution guidelines.
+# Database (if needed)
+DATABASE_URL="postgresql://username:password@localhost:5432/dbname"
+```
 
-## Code of Conduct
+## 🧪 Testing Strategy
 
-This project adheres to the [Contributor Covenant Code of Conduct](./CODE_OF_CONDUCT.md).
+- **Unit Tests**: Individual function and component tests
+- **Integration Tests**: API endpoint and service integration
+- **E2E Tests**: Full user journey tests using Playwright
+- **Coverage**: Aim for >80% code coverage
 
-## License
+## 📈 Monitoring and Logging
 
-MIT
-# Development mode
-pnpm dev
+- **API**: Structured logging with Winston
+- **Worker**: Job execution logging
+- **Web**: Browser console and error tracking
+- **Health Checks**: Available for all services
 
-# Build
+## 🚀 Deployment
+
+### Production Build
+```bash
+# Build all applications
 pnpm build
 
-# Type checking
-pnpm type-check
+# Start production services
+pnpm --filter @app/api start:prod
+pnpm --filter @app/web start
+pnpm --filter @app/worker start
 ```
 
-## Features
-
-### Customer Booking UI
-
-- **Multi-step booking flow**:
-  1. Service selection with pricing and duration
-  2. Barber and date selection
-  3. Time slot picker with real-time availability
-  4. Customer details form with validation
-  5. Booking confirmation screen
-
-- **State Management**:
-  - React Query for efficient caching of services, barbers, and time slots
-  - Automatic cache invalidation on booking creation
-  - Optimized re-fetching strategies
-
-- **Validation**:
-  - Client-side form validation with Zod schema
-  - Email format validation
-  - Phone number validation
-  - Real-time error feedback
-
-- **Accessibility**:
-  - ARIA labels and descriptions
-  - Keyboard navigation support
-  - Focus management
-  - Semantic HTML elements
-  - Color contrast compliance
-  - Screen reader compatibility
-
-- **Mobile Responsive**:
-  - Responsive grid layouts
-  - Touch-friendly buttons and inputs
-  - Optimized font sizes for mobile
-  - Proper viewport meta tag
-
-- **Error Handling**:
-  - Loading states for all data fetches
-  - User-friendly error messages
-  - API error handling with proper feedback
-  - Form submission error display
-
-## Environment Variables
-
-Create `.env.local` file in the `apps/customer-booking-ui` directory:
-
-```env
-# API Configuration
-NEXT_PUBLIC_API_URL=http://localhost:3001/api
-```
-
-## Component Structure
-
-### Main Components
-
-- **Layout**: Application header and footer
-- **BookingPage**: Multi-step booking orchestrator
-- **ServiceSelection**: Service browsing and selection
-- **BarberDateSelection**: Barber and date picker
-- **TimeSlotSelection**: Available time slots
-- **BookingForm**: Customer details form with validation
-- **BookingConfirmation**: Success/pending confirmation screen
-
-### Hooks
-
-- `useServices()`: Fetch all services
-- `useService(id)`: Fetch single service
-- `useBarbers()`: Fetch all barbers
-- `useBarber(id)`: Fetch single barber
-- `useAvailableSlots(barberId, date)`: Fetch slots for barber/date
-- `useCreateBooking()`: Create new booking
-- `useBooking(id)`: Fetch booking details
-- `useCancelBooking()`: Cancel booking
-
-## API Endpoints
-
-The application expects the following API endpoints:
-
-```
-GET    /api/services              # Get all services
-GET    /api/services/:id          # Get service details
-GET    /api/barbers               # Get all barbers
-GET    /api/barbers/:id           # Get barber details
-GET    /api/time-slots/available  # Get available slots (params: barberId, date)
-POST   /api/bookings              # Create booking
-GET    /api/bookings/:id          # Get booking details
-DELETE /api/bookings/:id          # Cancel booking
-```
-
-## Types
-
-All TypeScript types are defined in `src/types/booking.ts`:
-
-- `Service`: Barber service information
-- `Barber`: Barber professional information
-- `TimeSlot`: Available booking slots
-- `BookingFormData`: Customer booking form data
-- `BookingConfirmation`: Booking confirmation response
-- `ApiError`: API error structure
-
-## Styling
-
-The application uses CSS Modules for component styling with:
-
-- CSS custom properties for theming
-- Mobile-first responsive design
-- Accessibility-focused styling
-- Focus states for keyboard navigation
-
-## Best Practices
-
-1. **Accessibility**: All interactive elements are keyboard accessible
-2. **Performance**: React Query caching reduces API calls
-3. **Error Handling**: Comprehensive error states and user feedback
-4. **Validation**: Zod schemas ensure data integrity
-5. **Mobile First**: Responsive design starts from mobile screens
-6. **Type Safety**: Full TypeScript coverage
-
-## Web Application
-
-The main web application is located at `apps/web/` and built with Vite for optimal development experience.
-
-### Features
-
-- **Modern Stack**: Vite 5 for lightning-fast HMR and optimal build performance
-- **UI Components**: Mantine UI 7 with comprehensive component library
-- **State Management**: Hybrid approach with Zustand for global state and React Query for server state
-- **Routing**: React Router v6 for client-side navigation
-- **Type Safety**: Full TypeScript support with strict mode
-- **Testing**: Vitest + React Testing Library for unit and integration tests
-- **Documentation**: Storybook 7 for component development and documentation
-- **Code Quality**: ESLint + Prettier for consistent code style
-
-### Quick Start
-
+### Docker Deployment
 ```bash
-cd apps/web
+# Build production images
+docker-compose -f docker-compose.prod.yml build
 
-# Install dependencies (if not already installed)
-npm install
-
-# Start development server
-npm run dev
-
-# Run tests
-npm run test
-
-# Run linting
-npm run lint
-
-# Type checking
-npm run type-check
-
-# Build for production
-npm run build
-
-# Run Storybook
-npm run storybook
+# Deploy to production
+docker-compose -f docker-compose.prod.yml up -d
 ```
 
-### Architecture
+## 🤝 Contributing
 
-- **Path Aliases**: Configured for clean imports (`@/`, `@components/`, `@lib/`, etc.)
-- **API Client**: Centralized Axios instance with interceptors
-- **Theme System**: Customizable Mantine theme
-- **Environment Config**: `.env` based configuration with TypeScript support
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run tests and linting
+5. Submit a pull request
 
-For detailed documentation, see [apps/web/README.md](apps/web/README.md)
+## 📄 License
 
-## Future Enhancements
+This project is licensed under the MIT License.
 
-- [ ] Playwright E2E tests
-- [ ] Payment integration
-- [ ] Calendar widget
-- [ ] Notification system
-- [ ] Booking management page
-- [ ] Analytics tracking
-- [ ] Multi-language support
-- [ ] Mobile applications (React Native)
+## 🆘 Troubleshooting
 
-## License
+### Common Issues
 
-Private - All rights reserved
+1. **Dependency Conflicts**: Run `pnpm install --force` to resolve
+2. **Build Failures**: Check TypeScript configuration and dependencies
+3. **Database Connection**: Verify PostgreSQL is running and credentials are correct
+4. **Port Conflicts**: Ensure ports 3000, 3001 are available
+
+### Getting Help
+
+- Check individual package READMEs for specific guidance
+- Review the documentation in the `docs/` directory
+- Open an issue for bugs or feature requests

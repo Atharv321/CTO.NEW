@@ -8,6 +8,7 @@ COPY package*.json ./
 COPY pnpm-lock.yaml ./
 COPY packages/ ../packages/
 COPY tsconfig.json ./
+COPY next.config.js ./
 
 # Install pnpm and dependencies
 RUN npm install -g pnpm@8.0.0
@@ -31,22 +32,21 @@ RUN npm install -g pnpm@8.0.0
 COPY package*.json ./
 COPY packages/ ../packages/
 COPY tsconfig.json ./
+COPY next.config.js ./
+COPY public ./public
 
 # Install only production dependencies
 RUN pnpm install --frozen-lockfile --prod
 
 # Copy built application
-COPY --from=builder /app/dist ./dist
-
-# Create logs directory
-RUN mkdir -p logs
+COPY --from=builder /app/.next ./.next
 
 # Expose port
-EXPOSE 3001
+EXPOSE 3000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3001/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
+  CMD node -e "require('http').get('http://localhost:3000', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
 
 # Start the application
-CMD ["node", "dist/main.js"]
+CMD ["pnpm", "start"]
