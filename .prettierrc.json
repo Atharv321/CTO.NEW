@@ -7,4 +7,9 @@
   "useTabs": false,
   "arrowParens": "avoid",
   "endOfLine": "lf"
+  "singleQuote": true,
+  "tabWidth": 2,
+  "trailingComma": "es5",
+  "printWidth": 100,
+  "arrowParens": "always"
 }

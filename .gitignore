@@ -15,6 +15,27 @@ build/
 .env.*.local
 
 # IDE and editor
+# Logs
+logs
+# Dependencies
+node_modules/
+pnpm-lock.yaml
+yarn.lock
+package-lock.json
+
+# Production
+dist/
+.next/
+out/
+build/
+
+# Development
+.env
+.env.local
+.env.*.local
+.env.*.js
+
+# Editor
 .vscode/
 .idea/
 *.swp
@@ -28,6 +49,7 @@ coverage/
 
 # Logs
 logs/
+# Logs
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -36,6 +58,35 @@ pnpm-debug.log*
 
 # Runtime data
 pids/
+lerna-debug.log*
+
+node_modules
+.DS_Store
+dist
+dist-ssr
+coverage
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Environment files
+.env
+.env.local
+.env.*.local
+# Testing
+coverage/
+.nyc_output/
+
+# Runtime data
+pids
 *.pid
 *.seed
 *.pid.lock
@@ -46,3 +97,5 @@ temp/
 
 # Docker
 .docker/
+# Turbo
+.turbo/

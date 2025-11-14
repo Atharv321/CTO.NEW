@@ -8,4 +8,7 @@
     "strict": true
   },
   "include": ["vite.config.ts", "vitest.config.ts"]
+    "allowSyntheticDefaultImports": true
+  },
+  "include": ["vite.config.ts"]
 }
