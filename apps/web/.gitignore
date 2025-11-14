@@ -29,3 +29,24 @@ Thumbs.db
 
 # Storybook
 storybook-static/
+# Dependencies
+node_modules
+
+# Production
+dist
+dist-ssr
+*.local
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Storybook
+storybook-static
