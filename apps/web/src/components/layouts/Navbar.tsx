@@ -7,6 +7,7 @@ import {
   IconUsers,
   IconSettings,
   IconBriefcase,
+  IconPackages,
 } from 'tabler-icons-react';
 
 /**
@@ -20,6 +21,7 @@ export const Navbar: React.FC = () => {
     { label: 'Bookings', icon: IconCalendar, href: '/bookings' },
     { label: 'Barbers', icon: IconBriefcase, href: '/barbers' },
     { label: 'Customers', icon: IconUsers, href: '/customers' },
+    { label: 'Inventory', icon: IconPackages, href: '/inventory/items' },
     { label: 'Settings', icon: IconSettings, href: '/settings' },
   ];
 

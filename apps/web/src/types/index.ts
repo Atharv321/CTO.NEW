@@ -279,3 +279,84 @@ export interface TimeSlot {
   time: string;
   available: boolean;
 }
+
+// Inventory Types
+export interface Category {
+  id: number | string;
+  name: string;
+  description?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface InventoryLocation {
+  id: number | string;
+  name: string;
+  description?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface InventoryItem {
+  id: number | string;
+  sku: string;
+  barcode: string;
+  name: string;
+  description?: string;
+  categoryId: number | string;
+  supplierId?: number | string;
+  price: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface StockLevel {
+  id: number | string;
+  itemId: number | string;
+  locationId: number | string;
+  quantity: number;
+  reorderLevel?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface StockMovement {
+  id: number | string;
+  itemId: number | string;
+  locationId: number | string;
+  quantity: number;
+  movementType: 'inbound' | 'outbound' | 'adjustment' | 'scanned_entry' | 'return';
+  notes?: string;
+  referenceId?: string;
+  adjustedBy?: string;
+  createdAt?: string;
+  timestamp?: string;
+}
+
+export interface AuditLog {
+  id: number | string;
+  itemId: number | string;
+  locationId: number | string;
+  action: 'adjustment' | 'movement' | 'transfer';
+  quantity: number;
+  movementType?: string;
+  notes?: string;
+  adjustedBy?: string;
+  userId?: string;
+  createdAt?: string;
+  timestamp?: string;
+}
+
+export interface InventoryItemFilters {
+  search?: string;
+  categoryId?: number | string;
+  supplierId?: number | string;
+  locationId?: number | string;
+}
+
+export interface StockMovementRequest {
+  quantity: number;
+  movementType: 'inbound' | 'outbound' | 'adjustment' | 'scanned_entry' | 'return';
+  notes?: string;
+  referenceId?: string;
+}
