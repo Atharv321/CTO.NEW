@@ -1,3 +1,4 @@
+const { prisma } = require('../lib/prisma');
 require('dotenv').config();
 const { runMigrations } = require('../src/db/migrations');
 const { Client } = require('pg');
@@ -12,15 +13,21 @@ const path = require('path');
 
 const url = process.env.DATABASE_URL || 'postgresql://devuser:devpassword@db:5432/appdb';
 
-const sanitize = (connectionString) => {
+const runMigrations = async () => {
   try {
-    const parsed = new URL(connectionString);
-    if (parsed.password) {
-      parsed.password = '***';
-    }
-    return parsed.toString();
+    console.log('Running database migrations...');
+    
+    // Generate Prisma client
+    const { execSync } = require('child_process');
+    execSync('npx prisma generate', { stdio: 'inherit' });
+    
+    // Run migrations
+    execSync('npx prisma migrate deploy', { stdio: 'inherit' });
+    
+    console.log('Migrations completed successfully');
   } catch (error) {
-    return 'unknown-database';
+    console.error('Migration failed:', error);
+    process.exit(1);
   }
 };
 
@@ -69,6 +76,7 @@ if (require.main === module) {
   runMigrations();
 }
 
+module.exports = { runMigrations };
 module.exports = { runMigrations };
 const run = (label, command) => {
   console.log(`Running step: ${label}`);
