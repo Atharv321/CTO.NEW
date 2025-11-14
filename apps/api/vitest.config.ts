@@ -13,6 +13,19 @@ export default defineConfig({
         '**/*.test.ts',
         '**/*.config.ts',
       ],
+      reporter: ['text', 'json', 'html', 'lcov'],
+      exclude: [
+        'node_modules/',
+        'dist/',
+        '**/*.test.ts',
+        '**/*.spec.ts',
+      ],
+      thresholds: {
+        lines: 70,
+        functions: 70,
+        branches: 65,
+        statements: 70,
+      },
     },
   },
 });
