@@ -419,8 +419,52 @@ GET /api/v1/items/:barcode
 GET /api/v2/items/:barcode
 ```
 
+## Supplier and Purchase Order APIs
+
+The system now includes comprehensive supplier management and purchase order capabilities.
+
+### Quick Start
+
+```typescript
+// Fetch suppliers
+const suppliers = await fetch('/api/suppliers?active=true')
+  .then(res => res.json())
+
+// Create purchase order
+const po = await fetch('/api/purchase-orders', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    supplier_id: 1,
+    location_id: 1,
+    items: [
+      { item_id: 5, quantity: 100, unit_price: 9.99 }
+    ]
+  })
+}).then(res => res.json())
+
+// Submit order
+await fetch(`/api/purchase-orders/${po.id}/submit`, {
+  method: 'POST'
+})
+
+// Receive items
+await fetch(`/api/purchase-orders/${po.id}/receive`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    items: [
+      { item_id: 5, received_quantity: 100 }
+    ]
+  })
+})
+```
+
+For complete documentation, see [Purchase Orders Guide](docs/PURCHASE_ORDERS.md).
+
 ## Documentation Links
 
 - [REST API Best Practices](https://restfulapi.net/)
 - [HTTP Status Codes](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status)
 - [CORS Guide](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS)
+- [Purchase Orders Documentation](docs/PURCHASE_ORDERS.md)
