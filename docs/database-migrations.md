@@ -1,219 +1,117 @@
 # Database Migrations
 
-This document provides guidelines for managing database schema changes through migrations.
+This guide explains how database schema changes are managed with Prisma, how migrations are created and applied, and what tooling is available to keep environments in sync.
 
 ## Overview
 
-Database migrations are versioned schema changes that enable teams to evolve the database structure while maintaining data integrity and enabling rollback capabilities.
+- **ORM & Schema Toolkit**: [Prisma](https://www.prisma.io/)
+- **Schema Definition**: [`api/prisma/schema.prisma`](../api/prisma/schema.prisma)
+- **Migration History**: [`api/prisma/migrations`](../api/prisma/migrations)
+- **Seed Data**: [`api/prisma/seed.js`](../api/prisma/seed.js)
 
-The API service includes a basic migration runner accessible via `npm run migrate` in the `api/` directory.
+The first migration creates all core tables (users, roles, locations, inventory, purchasing, alerts, notifications) and installs cross-table auditing triggers. It also populates baseline roles (`admin`, `manager`, `staff`) and sample locations for New York, San Francisco, and London.
 
-## Migration Strategy
+## Local Development Workflow
 
-### Development Workflow
-
-1. Create a new migration file in `api/migrations/` (directory to be created as needed).
-2. Write both `up` (apply) and `down` (rollback) functions.
-3. Test the migration locally using Docker Compose.
-4. Commit the migration file to version control.
-5. The CI/CD pipeline will automatically run migrations on deployment.
-
-### Migration Naming Convention
-
-Use timestamps for ordering:
-
-```
-YYYYMMDDHHMMSS_description.js
-```
-
-Example:
-```
-20240101120000_create_users_table.js
-20240102130000_add_email_to_users.js
-```
-
-## Running Migrations
-
-### Local Development
-
-```bash
-./scripts/run_migrations.sh local
-```
-
-Or directly:
-
-```bash
-cd api
-npm run migrate
-```
-
-### CI/CD Pipeline
-
-Migrations run automatically during the `run-migrations` job in the GitHub Actions workflow, before deployment to staging.
-
-### Manual Execution (Staging/Production)
-
-```bash
-export DATABASE_URL="postgresql://user:pass@host:5432/db"
-cd api
-npm run migrate
-```
-
-## Migration Best Practices
-
-1. **Make migrations idempotent** – Running the same migration multiple times should not cause errors.
-2. **Test migrations on staging first** – Never deploy untested migrations to production.
-3. **Keep migrations small and focused** – One change per migration file.
-4. **Avoid data transformations in schema migrations** – Use separate data migration scripts.
-5. **Always provide a rollback path** – Ensure `down` migrations can reverse changes.
-6. **Backup before major changes** – Take database snapshots before applying destructive migrations.
-
-## Migration Tools
-
-The current implementation is a placeholder. Consider integrating one of these tools:
-
-### Option 1: node-pg-migrate
-
-```bash
-npm install node-pg-migrate
-```
-
-Example migration:
-```javascript
-exports.up = (pgm) => {
-  pgm.createTable('users', {
-    id: 'id',
-    email: { type: 'varchar(255)', notNull: true, unique: true },
-    created_at: { type: 'timestamp', notNull: true, default: pgm.func('current_timestamp') },
-  });
-};
-
-exports.down = (pgm) => {
-  pgm.dropTable('users');
-};
-```
-
-### Option 2: Knex.js
-
-```bash
-npm install knex
-```
-
-Create migrations:
-```bash
-npx knex migrate:make create_users_table
-```
-
-### Option 3: TypeORM
-
-```bash
-npm install typeorm
-```
-
-Generate migrations:
-```bash
-npx typeorm migration:generate -n CreateUsersTable
-```
-
-### Option 4: Prisma
-
-```bash
-npm install prisma
-```
-
-Apply migrations:
-```bash
-npx prisma migrate dev
-npx prisma migrate deploy
-```
-
-## Rollback Procedures
-
-### Rolling Back the Last Migration
-
-If a migration causes issues:
-
-1. Identify the problematic migration.
-2. Create a compensating migration that reverses the changes.
-3. Test thoroughly in a staging environment.
-4. Deploy the compensating migration.
-
-### Manual Rollback (if supported by migration tool)
-
-```bash
-cd api
-npm run migrate:rollback
-```
-
-### Emergency Rollback
-
-1. Restore database from backup.
-2. Re-run migrations up to the last known good state.
-3. Redeploy the application version that matches the database schema.
-
-## CI/CD Integration
-
-The migration step in `.github/workflows/ci-cd.yml`:
-
-```yaml
-run-migrations:
-  name: Run Database Migrations
-  runs-on: ubuntu-latest
-  needs: [build-api]
-  if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-  environment:
-    name: staging
-  steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-
-    - name: Install dependencies
-      working-directory: ./api
-      run: npm ci
-
-    - name: Run migrations
-      working-directory: ./api
-      env:
-        DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
-      run: npm run migrate
-```
-
-Migrations run before deployment to ensure the database schema is up-to-date before new application code is deployed.
-
-## Monitoring and Verification
-
-After running migrations:
-
-1. Check application logs for migration success/failure.
-2. Verify schema changes using:
+1. **Install dependencies**
    ```bash
-   psql $DATABASE_URL -c "\dt"  # List tables
-   psql $DATABASE_URL -c "\d table_name"  # Describe table
+   pnpm install
    ```
-3. Run smoke tests to confirm application functionality.
-4. Monitor error rates and database performance metrics.
+
+2. **Update the Prisma schema**
+   Modify `api/prisma/schema.prisma` to reflect the desired model changes.
+
+3. **Generate a migration**
+   ```bash
+   cd api
+   npx prisma migrate dev --name add-new-feature
+   ```
+   - Use `--create-only` if you want Prisma to generate the SQL without executing it.
+   - The generated folder in `prisma/migrations` must be committed alongside the schema changes.
+
+4. **Review the SQL**
+   Inspect `prisma/migrations/<timestamp>_<name>/migration.sql` to ensure it matches expectations and follows best practices (idempotent, safe defaults, etc.).
+
+5. **Run database seeds (optional)**
+   ```bash
+   npx prisma db seed
+   ```
+   This upserts the reference roles and locations defined in `prisma/seed.js`.
+
+## Applying Migrations
+
+### Local Environments
+
+Use the provided migration script, which also runs the seed step by default:
+
+```bash
+export DATABASE_URL="postgresql://user:password@localhost:5432/appdb"
+cd api
+npm run migrate
+```
+
+Set `SKIP_DB_SEED=true` to bypass the seed step (useful for already-populated databases).
+
+### Continuous Integration / Delivery
+
+The CI/CD pipeline runs `npm run migrate` inside the `api` service before deploying to staging or production. Ensure environment secrets provide the appropriate `DATABASE_URL`.
+
+### Manual Execution (Staging / Production)
+
+```bash
+export DATABASE_URL="postgresql://user:password@host:5432/production_db"
+cd api
+npm ci
+npm run migrate
+```
+
+## Seed Data Expectations
+
+The seed script performs **idempotent upserts** so it is safe to run multiple times:
+
+- Inserts/updates baseline roles (`admin`, `manager`, `staff`).
+- Inserts/updates the representative locations (`NYC-001`, `SFO-001`, `LDN-001`).
+
+You can extend `prisma/seed.js` with additional fixtures (e.g., demo inventory items) while retaining the upsert pattern.
+
+## Auditing and Soft Deletes
+
+- All domain tables include a nullable `deleted_at` column for soft deletes.
+- The `log_audit_event` trigger captures every `INSERT`, `UPDATE`, and `DELETE`, writing to the `audit_logs` table.
+- Update operations that toggle `deleted_at` are stored as `DELETE` (soft-delete) or `RESTORE` actions.
+- If the application sets `SET app.current_user_id = '<uuid>'`, the trigger records the acting user.
+
+Refer to the schema diagram in [`docs/database-schema.md`](./database-schema.md) for the full relationship map and constraint summary (e.g., unique SKUs per location).
+
+## Best Practices
+
+1. **One concern per migration** – Combine related DDL and data updates but avoid unrelated changes in the same migration.
+2. **Prefer additive changes** – When possible, add columns/tables before removing old ones to allow for backfills and gradual rollouts.
+3. **Keep migrations idempotent** – Avoid `DROP IF EXISTS` on critical objects unless absolutely necessary; use `IF NOT EXISTS` guards where applicable.
+4. **Document intent** – Include context in the migration filename (e.g., `20241114121500_initial_schema`).
+5. **Run migrations locally** – Always execute migrations against a development database before committing.
+6. **Use seeds for reference data** – Rely on `prisma db seed` for deterministic baseline data rather than embedding ad-hoc SQL in migrations.
+7. **Monitor audit logs** – Use the `audit_logs` table to diagnose unexpected data changes or soft deletes.
 
 ## Troubleshooting
 
-### Migration Fails
+### Migration Fails in CI
+- Ensure the migration SQL is compatible with the Postgres version used in CI.
+- Check that the `DATABASE_URL` secret is present and the database user has migration privileges (CREATE/ALTER).
 
-- Check database connectivity and credentials.
-- Review migration logs for SQL errors.
-- Ensure the database user has sufficient permissions (CREATE, ALTER, DROP).
+### Drift Detected
+- Run `npx prisma migrate diff --from-schema-datamodel schema.prisma --to-url "$DATABASE_URL" --script` to inspect differences between the schema and the target database.
+- If the production database diverged, create a corrective migration instead of editing historical files.
 
-### Migration Timeout
+### Seed Issues
+- Seeds are idempotent; retry after fixing any transient errors.
+- To seed a different dataset, parameterise `prisma/seed.js` or guard portions of the script with environment variables.
 
-- Increase timeout in CI/CD workflow.
-- Optimize long-running migrations (e.g., add indexes concurrently in PostgreSQL).
-- Consider running large migrations outside the deployment window.
+### Rolling Back
+- Prisma does not auto-generate down migrations in deploy mode. To revert, create and deploy a compensating migration or restore from a database backup, following the procedures in [`docs/rollback-strategy.md`](./rollback-strategy.md).
 
-### Schema Conflicts
+## Additional Resources
 
-- Ensure all developers pull latest migrations before creating new ones.
-- Use a migration lock mechanism to prevent concurrent migrations.
-- Resolve conflicts by creating a new migration that reconciles differences.
+- [Prisma Migrate Documentation](https://www.prisma.io/docs/concepts/components/prisma-migrate)
+- [Prisma CLI Reference](https://www.prisma.io/docs/reference/api-reference/command-reference)
+- [`docs/database-schema.md`](./database-schema.md) for a visual overview of entities and constraints.
