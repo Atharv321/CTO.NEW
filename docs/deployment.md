@@ -67,7 +67,7 @@ The GitHub Actions workflow is located at `.github/workflows/ci-cd.yml` and cove
 | Name | Location | Description |
 | ---- | -------- | ----------- |
 | `PORT` | API/Web containers | Port for each service to listen on. |
-| `DATABASE_URL` | API | Connection string for Postgres. |
+| `DATABASE_URL` | API | Connection string for Postgres. Injected via Kubernetes secret (`database.existingSecret`). |
 | `POSTGRES_USER` | DB | Database username. |
 | `POSTGRES_PASSWORD` | DB | Database password. |
 | `POSTGRES_DB` | DB | Database name. |
@@ -75,6 +75,7 @@ The GitHub Actions workflow is located at `.github/workflows/ci-cd.yml` and cove
 | `API_IMAGE`, `WEB_IMAGE` | Deploy scripts | Image references for Docker Compose deployments. |
 | `STAGING_DATABASE_URL` | GitHub Secret | Postgres connection for staging migrations. |
 | `STAGING_KUBECONFIG` | GitHub Secret | Base64-encoded kubeconfig for staging cluster access. |
+| `PRODUCTION_DATABASE_URL` | GitHub Secret | Postgres connection for production migrations. |
 | `PRODUCTION_KUBECONFIG` | GitHub Secret | Base64-encoded kubeconfig for production cluster (optional). |
 
 Store all secrets in GitHub Secrets or a centralized secret manager (e.g., HashiCorp Vault, AWS Secrets Manager). Reference them via the workflow environment configuration and avoid committing secrets to the repository.

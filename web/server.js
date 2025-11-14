@@ -7,6 +7,10 @@ const createApp = () => {
 
   app.use(express.static(path.join(__dirname, 'public')));
 
+  app.get('/health', (req, res) => {
+    res.json({ status: 'OK' });
+  });
+
   app.get('/config.js', (req, res) => {
     res.type('application/javascript');
     res.send(`window.__CONFIG__ = { API_BASE_URL: '${API_BASE_URL}' };`);

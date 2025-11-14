@@ -1,5 +1,8 @@
+const app = require('./server');
+
 describe('Web', () => {
-  test('dummy test', () => {
-    expect(true).toBe(true);
+  test('exports express app', () => {
+    expect(app).toBeDefined();
+    expect(typeof app).toBe('function');
   });
 });

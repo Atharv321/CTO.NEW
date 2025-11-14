@@ -31,3 +31,8 @@ ingress:
       paths:
         - path: /
           pathType: Prefix
+
+database:
+  existingSecret:
+    name: app-staging-database
+    key: database-url
