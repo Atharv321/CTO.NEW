@@ -3,7 +3,7 @@ const { Pool } = require('pg');
 class DatabaseService {
   constructor() {
     this.pool = new Pool({
-      connectionString: process.env.DATABASE_URL || 'postgresql://devuser:devpassword@localhost:5432/appdb',
+      connectionString: process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/monorepo',
       max: 20,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 2000,
