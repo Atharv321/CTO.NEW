@@ -1,0 +1,183 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Admin Users model for system administration
+model AdminUser {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  passwordHash String
+  role      String   @default("admin") // admin, manager, support
+  isActive  Boolean  @default(true)
+  lastLogin DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("admin_users")
+}
+
+// Customers model for booking customers
+model Customer {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  phone     String?
+  firstName String
+  lastName  String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  bookings  Booking[]
+  notificationLogs NotificationLog[]
+
+  @@map("customers")
+}
+
+// Barbers model
+model Barber {
+  id        String   @id @default(cuid())
+  name      String
+  email     String?  @unique
+  phone     String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  availabilityOverrides AvailabilityOverride[]
+  bookings Booking[]
+  notificationLogs NotificationLog[]
+
+  @@map("barbers")
+}
+
+// Services model - e.g., Haircut, Beard Trim, etc.
+model Service {
+  id            String   @id @default(cuid())
+  name          String
+  description   String?
+  durationMinutes Int    @default(30) // How long the service takes
+  price         Decimal  @db.Decimal(10, 2)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relationships
+  bookings Booking[]
+
+  @@map("services")
+}
+
+// TimeSlot model - represents available time windows
+// Could be used for pre-defined slots like 9:00 AM - 5:30 PM daily
+model TimeSlot {
+  id            String   @id @default(cuid())
+  dayOfWeek     Int      // 0 = Sunday, 6 = Saturday
+  startTime     String   // HH:mm format (24-hour)
+  endTime       String   // HH:mm format (24-hour)
+  description   String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([dayOfWeek, startTime, endTime])
+  @@map("time_slots")
+}
+
+// Availability model - global working hours configuration
+// This is the default availability schedule (e.g., 9 AM - 6 PM, Mon-Fri)
+model Availability {
+  id            String   @id @default(cuid())
+  dayOfWeek     Int      // 0 = Sunday, 6 = Saturday
+  startTime     String   // HH:mm format (24-hour)
+  endTime       String   // HH:mm format (24-hour)
+  isWorkingDay  Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([dayOfWeek])
+  @@map("availability")
+}
+
+// AvailabilityOverride model - per-barber or special exceptions to availability
+// e.g., Barber X is only available 10 AM - 2 PM on Mondays, or shop is closed on holidays
+model AvailabilityOverride {
+  id            String   @id @default(cuid())
+  barberId      String?
+  date          DateTime // Specific date for the override
+  startTime     String   // HH:mm format (24-hour)
+  endTime       String   // HH:mm format (24-hour)
+  isAvailable   Boolean  @default(true) // false means unavailable (e.g., holiday, day off)
+  reason        String?  // e.g., "Holiday", "Day off", "Special hours"
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relationships
+  barber        Barber?  @relation(fields: [barberId], references: [id], onDelete: SetNull)
+
+  @@map("availability_overrides")
+}
+
+// Bookings model - represents actual bookings
+model Booking {
+  id            String   @id @default(cuid())
+  customerId    String
+  barberId      String
+  serviceId     String
+  scheduledAt   DateTime // When the booking is scheduled for
+  durationMinutes Int
+  status        String   @default("pending") // pending, confirmed, completed, cancelled, no-show
+  notes         String?
+  cancellationReason String?
+  cancelledAt   DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relationships
+  customer      Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  barber        Barber   @relation(fields: [barberId], references: [id], onDelete: Restrict)
+  service       Service  @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+
+  @@index([customerId])
+  @@index([barberId])
+  @@index([serviceId])
+  @@index([scheduledAt])
+  @@index([status])
+  @@map("bookings")
+}
+
+// NotificationLog model - tracks all notifications sent
+model NotificationLog {
+  id            String   @id @default(cuid())
+  customerId    String?
+  barberId      String?
+  bookingId     String?
+  type          String   // email, sms, push, in-app
+  subject       String?
+  message       String
+  status        String   @default("pending") // pending, sent, failed, bounced
+  sentAt        DateTime?
+  failureReason String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relationships
+  customer      Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  barber        Barber?   @relation(fields: [barberId], references: [id], onDelete: SetNull)
+
+  @@index([customerId])
+  @@index([barberId])
+  @@index([type])
+  @@index([status])
+  @@map("notification_logs")
+}

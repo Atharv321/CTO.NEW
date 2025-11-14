@@ -14,12 +14,17 @@
     "test:coverage": "vitest run --coverage",
     "lint": "eslint src --ext .ts",
     "type-check": "tsc --noEmit",
-    "migrate": "node --loader tsx/cjs src/database/migrate.ts"
+    "migrate": "prisma migrate deploy",
+    "migrate:dev": "prisma migrate dev",
+    "migrate:reset": "prisma migrate reset --force",
+    "seed": "node --loader tsx/cjs src/database/seed.ts",
+    "prisma:generate": "prisma generate"
   },
   "dependencies": {
     "express": "^4.18.0",
     "@shared/types": "workspace:*",
     "@shared/utils": "workspace:*",
+    "@prisma/client": "^5.7.0",
     "pg": "^8.11.0",
     "redis": "^4.6.0",
     "node-cron": "^3.0.3",
@@ -40,6 +45,7 @@
     "tsx": "^4.0.0",
     "typescript": "^5.0.0",
     "vitest": "^1.0.0",
-    "supertest": "^6.3.3"
+    "supertest": "^6.3.3",
+    "prisma": "^5.7.0"
   }
 }
