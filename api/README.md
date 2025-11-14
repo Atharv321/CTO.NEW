@@ -1,3 +1,71 @@
+# Barber Booking API
+
+A Node.js/Express API service with integrated WhatsApp notifications via Twilio.
+
+## Features
+
+- **RESTful API**: Booking management endpoints
+- **WhatsApp Notifications**: Automatic barber notifications via Twilio
+- **Message Templates**: Configurable message templates
+- **Notification Logging**: Complete audit trail of all notifications
+- **Retry Logic**: Automatic retry with exponential backoff
+- **Database Integration**: PostgreSQL for data persistence
+- **Comprehensive Testing**: 84% test coverage with Jest
+A comprehensive REST and GraphQL API for barber shop booking management with built-in validation, rate limiting, and transactional booking creation.
+
+## Features
+
+- **REST & GraphQL APIs**: Full CRUD operations for services, barbers, customers, and bookings
+- **Smart Booking Logic**: Prevents double bookings with transactional creation
+- **Availability Management**: Flexible scheduling with time slot generation
+- **Input Validation**: Comprehensive validation using express-validator
+- **Rate Limiting**: Multi-tier rate limiting for different endpoint types
+- **Database Transactions**: ACID compliance with Prisma ORM
+- **Comprehensive Testing**: Unit and integration test coverage
+- **API Documentation**: Detailed REST and GraphQL documentation
+
+## Quick Start
+
+### Prerequisites
+
+- Node.js >= 16
+- PostgreSQL database
+- Twilio account (for WhatsApp notifications)
+- Node.js 18+
+- PostgreSQL 12+
+- npm
+
+### Installation
+
+1. Clone and install dependencies:
+# Barbershop Admin API
+
+Backend API service for managing a barbershop booking system with admin authentication.
+
+## Features
+
+- **Authentication**: JWT-based authentication with password login and magic link support
+- **Services Management**: Full CRUD operations for barbershop services
+- **Barbers Management**: Manage barber profiles and information
+- **Availability Management**: 
+  - Recurring weekly availability templates
+  - Specific date overrides for holidays/special hours
+- **Bookings Management**: 
+  - List and filter bookings with pagination
+  - Update booking statuses
+  - View booking statistics
+- **Validation**: Comprehensive request validation using Joi
+- **Database**: PostgreSQL with migration system
+- **Testing**: Full integration test suite
+
+## Tech Stack
+
+- Node.js + Express
+- PostgreSQL
+- JWT for authentication
+- Joi for validation
+- Jest + Supertest for testing
+- bcrypt for password hashing
 # Inventory API
 
 A comprehensive REST API for managing inventory items, categories, and stock levels across multiple locations with role-based access control.
@@ -31,6 +99,9 @@ Express-based API service for inventory management, supplier management, and pur
 
 ### Prerequisites
 
+- Node.js 18+
+- PostgreSQL 13+
+- npm or yarn
 - Node.js 16+
 - PostgreSQL database
 - Environment variables configured (see `.env.example`)
@@ -38,10 +109,332 @@ Express-based API service for inventory management, supplier management, and pur
 ### Installation
 
 ```bash
+npm install
+```
+
+### Configuration
+
+1. Copy `.env.example` to `.env`:
+```bash
+cp ../.env.example .env
+```
+
+2. Configure environment variables:
+```env
+# Database
+DATABASE_URL=postgresql://user:password@localhost:5432/dbname
+
+# Twilio WhatsApp
+WHATSAPP_ENABLED=true
+TWILIO_ACCOUNT_SID=your_account_sid
+TWILIO_AUTH_TOKEN=your_auth_token
+TWILIO_WHATSAPP_NUMBER=whatsapp:+14155238886
+
+# Optional
+WHATSAPP_MAX_RETRIES=3
+WHATSAPP_RETRY_DELAY=5000
+LOG_LEVEL=INFO
 cd api
 npm install
 ```
 
+2. Set up environment variables:
+```bash
+cp ../.env.example .env
+# Edit .env with your database configuration
+```
+
+3. Set up the database:
+```bash
+npm run db:migrate
+npm run db:seed  # Optional: seed with sample data
+```
+
+4. Start the development server:
+```bash
+npm run dev
+```
+
+The API will be available at:
+- REST API: http://localhost:3001/api
+- GraphQL: http://localhost:3001/graphql
+- Health Check: http://localhost:3001/health
+
+## API Endpoints
+
+### REST API
+- `GET /api/services` - List all services
+- `POST /api/services` - Create new service
+- `GET /api/barbers` - List barbers
+- `GET /api/customers` - List customers
+- `GET /api/bookings` - List bookings with filters
+- `POST /api/bookings` - Create booking
+- `GET /api/bookings/available-slots` - Get available time slots
+
+### GraphQL
+Full GraphQL API with queries and mutations for all entities. Visit `/graphql` for the interactive playground.
+
+## Key Features
+
+### Booking Logic
+- **Slot Availability**: Real-time availability checking
+- **Double Booking Prevention**: Database constraints and application logic
+- **Time Slot Generation**: Automatic 30-minute slot generation based on availability
+- **Transactional Creation**: Atomic booking creation with rollback on failure
+
+### Rate Limiting
+- **General API**: 100 requests/15 minutes
+- **Booking Operations**: 10 requests/15 minutes
+- **Customer Operations**: 50 requests/15 minutes
+- **Account Creation**: 5 requests/hour
+
+### Validation
+- Input sanitization and validation
+- UUID format validation
+- Date/time validation
+- Business logic validation (availability, overlapping bookings)
+
+## Testing
+
+```bash
+# Run all tests with coverage
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+```
+
+Test suites include:
+- Booking service logic
+- REST API endpoints
+- GraphQL queries and mutations
+- Rate limiting functionality
+- Error handling scenarios
+
+## Database Schema
+
+The API uses Prisma ORM with PostgreSQL. Key models:
+- **Service**: Haircut/grooming services with pricing
+- **Barber**: Staff members with availability schedules
+- **Customer**: Client information
+- **Booking**: Appointments with status tracking
+- **Availability**: Weekly working hours per barber
+
+## Scripts
+
+- `npm run dev` - Start development server
+- `npm start` - Start production server
+- `npm test` - Run test suite
+- `npm run db:generate` - Generate Prisma client
+- `npm run db:migrate` - Run database migrations
+- `npm run db:studio` - Open Prisma Studio
+- `npm run db:seed` - Seed database with sample data
+
+## Security
+
+- SQL injection prevention via Prisma ORM
+- Input validation and sanitization
+- Rate limiting to prevent abuse
+- CORS configuration
+- Error message sanitization
+
+## Documentation
+
+See `docs/README.md` for comprehensive API documentation including:
+- Complete endpoint reference
+- Request/response examples
+- Error handling
+- GraphQL schema
+- Authentication guidelines
+### Environment Variables
+
+Create a `.env` file in the api directory:
+
+```bash
+# Database
+DATABASE_URL=postgresql://user:password@localhost:5432/barbershop
+
+# JWT Configuration
+JWT_SECRET=your-secret-key-change-in-production
+JWT_EXPIRES_IN=24h
+
+# Server
+PORT=3001
+NODE_ENV=development
+```
+
+### Database Setup
+
+Run migrations to create required tables:
+
+```bash
+npm run migrate
+```
+
+This creates:
+- `notification_log` table for tracking WhatsApp message attempts
+
+### Start Server
+
+```bash
+# Development
+npm run dev
+
+# Production
+npm start
+```
+
+Server runs on port 3001 by default (configurable via `PORT` env var).
+
+## API Endpoints
+
+### Health Check
+
+```http
+GET /health
+```
+
+Returns service health status.
+
+### Create Booking
+
+```http
+POST /api/bookings
+Content-Type: application/json
+
+{
+  "customerName": "John Doe",
+  "customerPhone": "+1234567890",
+  "barberPhone": "+9876543210",
+  "barberName": "Jane Smith",
+  "appointmentTime": "2024-01-15 10:00 AM"
+}
+```
+
+Creates a booking and sends WhatsApp notification to barber.
+
+**Required fields**: `customerName`, `customerPhone`, `appointmentTime`
+
+**Response**:
+```json
+{
+  "booking": {
+    "id": 123,
+    "customerName": "John Doe",
+    "status": "confirmed",
+    "createdAt": "2024-01-15T08:00:00.000Z"
+  },
+  "notification": {
+    "sent": true,
+    "notificationLogId": 1,
+    "messageSid": "SM123..."
+  }
+}
+```
+
+### Get Notification Logs
+
+```http
+GET /api/notifications?bookingId=123
+```
+
+Retrieves all notification attempts for a booking.
+
+```http
+GET /api/notifications/:id
+```
+
+Retrieves a specific notification by ID.
+
+## Project Structure
+
+```
+api/
+├── src/
+│   ├── config/
+│   │   ├── database.js       # Database connection
+│   │   └── whatsapp.js       # WhatsApp configuration
+│   ├── models/
+│   │   └── NotificationLog.js # Notification log model
+│   ├── routes/
+│   │   ├── bookings.js       # Booking endpoints
+│   │   └── notifications.js  # Notification endpoints
+│   ├── services/
+│   │   ├── whatsappService.js # WhatsApp service
+│   │   └── __mocks__/        # Test mocks
+│   ├── utils/
+│   │   ├── logger.js         # Logging utility
+│   │   └── messageTemplates.js # Message templates
+│   └── __tests__/            # Test files
+├── migrations/
+│   └── 001_create_notification_log.sql
+├── scripts/
+│   └── migrate.js            # Migration runner
+├── server.js                 # Main server file
+├── package.json
+└── README.md                 # This file
+```
+
+## WhatsApp Service
+
+The WhatsApp service provides notification capabilities using Twilio's API.
+
+### Key Features
+
+- **Template-based messages**: Pre-configured templates for different notification types
+- **Automatic retry**: Up to 3 retries with exponential backoff
+- **Database logging**: All attempts logged with status and errors
+- **Error handling**: Comprehensive error handling and logging
+
+### Available Templates
+
+1. **booking_confirmation** - Sent to barber on new booking
+2. **booking_reminder** - Appointment reminder
+3. **booking_cancellation** - Cancellation notification
+
+### Usage Example
+
+```javascript
+const WhatsAppService = require('./src/services/whatsappService');
+
+const service = new WhatsAppService();
+
+await service.sendBookingNotification({
+  bookingId: 123,
+  customerName: 'John Doe',
+  customerPhone: '+1234567890',
+  barberPhone: '+9876543210',
+  barberName: 'Jane Smith',
+  appointmentTime: '2024-01-15 10:00 AM',
+});
+```
+
+For detailed documentation, see:
+- [WhatsApp Service Documentation](./WHATSAPP_SERVICE.md)
+- [Example Usage](./EXAMPLE_USAGE.md)
+- [Implementation Summary](./WHATSAPP_IMPLEMENTATION_SUMMARY.md)
+
+## Testing
+
+Run all tests:
+Run migrations and seed the database:
+
+```bash
+npm run seed
+```
+
+This will:
+- Create all necessary database tables
+- Create an admin user (email: admin@barbershop.com, password: admin123)
+- Create sample barbers and services
+- Set up availability templates
+
+### Development
+
+Start the development server:
+
+```bash
+npm run dev
 ### Database Setup
 
 1. Ensure PostgreSQL is running
@@ -288,6 +681,304 @@ npm start
 
 The API will be available at `http://localhost:3001`
 
+### Testing
+
+Run the test suite:
+
+```bash
+npm test
+```
+
+Run tests in watch mode:
+
+```bash
+npm test -- --watch
+```
+
+Run tests with coverage:
+
+```bash
+npm test -- --coverage
+```
+
+### Test Coverage
+
+```
+Test Suites: 6 passed, 6 total
+Tests:       31 passed, 31 total
+Coverage:    84% overall
+```
+
+### Test Files
+
+- `src/__tests__/whatsappService.test.js` - WhatsApp service tests
+- `src/__tests__/messageTemplates.test.js` - Template tests
+- `src/__tests__/bookings.test.js` - Booking API tests
+- `src/__tests__/notificationLog.test.js` - Database model tests
+- `src/__tests__/integration.test.js` - Integration tests
+
+## Development
+
+### Adding a New Message Template
+
+1. Edit `src/utils/messageTemplates.js`:
+
+```javascript
+const templates = {
+  // Existing templates...
+  
+  my_custom_template: {
+    name: 'my_custom_template',
+    generate: ({ param1, param2 }) => {
+      return `Custom message with ${param1} and ${param2}`;
+    },
+  },
+};
+```
+
+2. Use the template:
+
+```javascript
+await whatsappService.sendTemplatedMessage(
+  '+1234567890',
+  'my_custom_template',
+  { param1: 'value1', param2: 'value2' }
+);
+```
+
+### Database Migrations
+
+To add a new migration:
+
+1. Create a new `.sql` file in `migrations/` with format `XXX_description.sql`
+2. Run `npm run migrate` to apply
+
+## Environment Variables
+
+| Variable | Description | Default | Required |
+|----------|-------------|---------|----------|
+| `PORT` | Server port | 3001 | No |
+| `DATABASE_URL` | PostgreSQL connection string | - | Yes |
+| `WHATSAPP_ENABLED` | Enable WhatsApp service | false | No |
+| `TWILIO_ACCOUNT_SID` | Twilio account SID | - | Yes* |
+| `TWILIO_AUTH_TOKEN` | Twilio auth token | - | Yes* |
+| `TWILIO_WHATSAPP_NUMBER` | WhatsApp sender number | whatsapp:+14155238886 | No |
+| `WHATSAPP_MAX_RETRIES` | Max retry attempts | 3 | No |
+| `WHATSAPP_RETRY_DELAY` | Retry delay (ms) | 5000 | No |
+| `WHATSAPP_TIMEOUT` | Request timeout (ms) | 30000 | No |
+| `LOG_LEVEL` | Logging level | INFO | No |
+
+*Required when `WHATSAPP_ENABLED=true`
+
+## Deployment
+
+### Docker
+
+Build the image:
+
+```bash
+docker build -t barber-api .
+```
+
+Run the container:
+
+```bash
+docker run -p 3001:3001 \
+  -e DATABASE_URL=postgresql://... \
+  -e WHATSAPP_ENABLED=true \
+  -e TWILIO_ACCOUNT_SID=... \
+  -e TWILIO_AUTH_TOKEN=... \
+  barber-api
+```
+
+### Docker Compose
+
+See `../docker-compose.yml` for full stack deployment.
+
+## Monitoring
+
+### Logging
+
+The API uses structured logging with the following levels:
+
+- **ERROR**: Critical errors requiring attention
+- **WARN**: Warning conditions
+- **INFO**: Informational messages (default)
+- **DEBUG**: Detailed debug information
+
+Set `LOG_LEVEL` environment variable to control verbosity.
+
+### Health Check
+
+Monitor the health endpoint:
+
+```bash
+curl http://localhost:3001/health
+```
+
+### Notification Monitoring
+
+Query notification logs to monitor success rate:
+
+```sql
+SELECT 
+  status,
+  COUNT(*) as count,
+  AVG(retry_count) as avg_retries
+FROM notification_log
+WHERE created_at > NOW() - INTERVAL '24 hours'
+GROUP BY status;
+```
+
+## API Documentation
+
+See [Admin API Documentation](../docs/admin-api.md) for detailed endpoint documentation.
+
+### Quick Start Example
+
+1. **Login:**
+```bash
+curl -X POST http://localhost:3001/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "admin@barbershop.com",
+    "password": "admin123"
+  }'
+```
+
+2. **Use the token for authenticated requests:**
+```bash
+curl http://localhost:3001/api/admin/services \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"
+```
+
+## Project Structure
+
+```
+api/
+├── src/
+│   ├── db/
+│   │   ├── index.js          # Database connection
+│   │   └── migrations.js     # Database migrations
+│   ├── middleware/
+│   │   └── auth.js           # Authentication middleware
+│   ├── routes/
+│   │   ├── auth.js           # Authentication endpoints
+│   │   ├── services.js       # Services CRUD
+│   │   ├── barbers.js        # Barbers CRUD
+│   │   ├── availability.js   # Availability management
+│   │   └── bookings.js       # Bookings management
+│   └── validators/
+│       └── index.js          # Validation schemas
+├── scripts/
+│   ├── migrate.js            # Migration runner
+│   └── seed.js               # Database seeding
+├── tests/
+│   ├── setup.js              # Test utilities
+│   ├── auth.test.js          # Auth tests
+│   ├── services.test.js      # Services tests
+│   ├── availability.test.js  # Availability tests
+│   └── bookings.test.js      # Bookings tests
+├── server.js                 # Main application entry point
+└── package.json
+```
+
+## Database Schema
+
+### Tables
+
+- **admins**: Admin users for authentication
+- **barbers**: Barber profiles
+- **services**: Available services (haircut, beard trim, etc.)
+- **availability_templates**: Recurring weekly availability schedules
+- **availability_overrides**: Specific date availability overrides
+- **bookings**: Customer bookings
+- **magic_links**: Passwordless authentication tokens
+- **migrations**: Migration tracking
+
+## API Endpoints
+
+### Authentication
+- `POST /api/auth/login` - Email/password login
+- `POST /api/auth/magic-link` - Request magic link
+- `POST /api/auth/verify-magic-link` - Verify magic link
+
+### Services (Admin)
+- `GET /api/admin/services` - List all services
+- `GET /api/admin/services/:id` - Get service by ID
+- `POST /api/admin/services` - Create service
+- `PUT /api/admin/services/:id` - Update service
+- `DELETE /api/admin/services/:id` - Delete service
+
+### Barbers (Admin)
+- `GET /api/admin/barbers` - List all barbers
+- `GET /api/admin/barbers/:id` - Get barber by ID
+- `POST /api/admin/barbers` - Create barber
+- `PUT /api/admin/barbers/:id` - Update barber
+- `DELETE /api/admin/barbers/:id` - Delete barber
+
+### Availability (Admin)
+- `GET /api/admin/availability/templates` - List templates
+- `GET /api/admin/availability/templates/barber/:barberId` - Get barber templates
+- `POST /api/admin/availability/templates` - Create template
+- `PUT /api/admin/availability/templates/:id` - Update template
+- `DELETE /api/admin/availability/templates/:id` - Delete template
+- `GET /api/admin/availability/overrides` - List overrides
+- `GET /api/admin/availability/overrides/barber/:barberId` - Get barber overrides
+- `POST /api/admin/availability/overrides` - Create override
+- `PUT /api/admin/availability/overrides/:id` - Update override
+- `DELETE /api/admin/availability/overrides/:id` - Delete override
+
+### Bookings (Admin)
+- `GET /api/admin/bookings` - List bookings (with filtering & pagination)
+- `GET /api/admin/bookings/:id` - Get booking by ID
+- `PATCH /api/admin/bookings/:id/status` - Update booking status
+- `GET /api/admin/bookings/stats/summary` - Get booking statistics
+
+## Validation
+
+All endpoints use Joi schemas for validation. Invalid requests return:
+
+```json
+{
+  "error": "Validation failed",
+  "details": [
+    {
+      "field": "email",
+      "message": "\"email\" must be a valid email"
+    }
+  ]
+}
+```
+
+## Error Handling
+
+Standard HTTP status codes are used:
+- `200` - Success
+- `201` - Created
+- `400` - Validation error
+- `401` - Unauthorized
+- `404` - Not found
+- `409` - Conflict
+- `500` - Internal server error
+
+## Security
+
+- Passwords are hashed using bcrypt (10 rounds)
+- JWT tokens for authentication
+- Magic links expire after 15 minutes
+- Input validation on all endpoints
+- SQL injection protection via parameterized queries
+
+## Production Deployment
+
+1. Set strong `JWT_SECRET` environment variable
+2. Use HTTPS
+3. Set `NODE_ENV=production`
+4. Use a managed PostgreSQL service
+5. Enable rate limiting (not included, consider adding)
+6. Set up monitoring and logging
+7. Regular security updates
 ## API Endpoints
 
 ### Health Check
@@ -360,11 +1051,22 @@ To create a new migration:
 ## Environment Variables
 
 ```env
+DATABASE_URL=postgresql://user:password@localhost:5432/barber_booking
 DATABASE_URL=postgresql://user:password@host:5432/database
 PORT=3001
 NODE_ENV=development
 ```
 
+## Contributing
+
+1. Follow the existing code style and patterns
+2. Add tests for new features
+3. Update documentation for API changes
+4. Run tests before committing
+
+## License
+
+MIT License
 ## Architecture
 
 ### Directory Structure
@@ -568,6 +1270,45 @@ When items are received via PO, the system:
 
 ### Database Connection Issues
 
+**Error**: `Connection refused`
+
+**Solution**: Verify DATABASE_URL and ensure PostgreSQL is running.
+
+### WhatsApp Messages Not Sending
+
+**Error**: `Authentication failed`
+
+**Solutions**:
+1. Verify TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN
+2. Check Twilio account status
+3. Ensure WHATSAPP_ENABLED=true
+
+**Error**: `Permission denied (21408)`
+
+**Solutions**:
+1. For sandbox: Recipient must join sandbox
+2. For production: Use approved templates
+
+### High Retry Counts
+
+Check notification logs for error patterns:
+
+```sql
+SELECT error_message, COUNT(*) 
+FROM notification_log 
+WHERE status = 'failed' 
+GROUP BY error_message;
+```
+
+## Support
+
+- [Twilio Documentation](https://www.twilio.com/docs/whatsapp)
+- [Express.js Documentation](https://expressjs.com/)
+- [PostgreSQL Documentation](https://www.postgresql.org/docs/)
+
+## License
+
+[Add your license here]
 ```bash
 # Check DATABASE_URL environment variable
 echo $DATABASE_URL
@@ -608,6 +1349,13 @@ npm test -- --verbose
 ## Contributing
 
 1. Write tests for new features
+2. Follow existing code style
+3. Update documentation
+4. Ensure all tests pass
+
+## License
+
+MIT
 2. Follow existing code patterns
 3. Update documentation
 4. Ensure all tests pass

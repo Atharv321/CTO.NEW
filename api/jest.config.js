@@ -1,5 +1,18 @@
 module.exports = {
   testEnvironment: 'node',
+  collectCoverageFrom: [
+    '**/*.js',
+    '!node_modules/**',
+    '!coverage/**',
+    '!tests/**',
+    '!jest.config.js'
+  ],
+  coverageDirectory: 'coverage',
+  coverageReporters: ['text', 'lcov', 'html'],
+  testMatch: [
+    '**/tests/**/*.test.js'
+  testTimeout: 30000,
+  coveragePathIgnorePatterns: ['/node_modules/', '/tests/'],
   testMatch: ['**/__tests__/**/*.test.js', '**/*.test.js'],
   collectCoverageFrom: [
     'src/**/*.js',

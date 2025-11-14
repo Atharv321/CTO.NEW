@@ -22,6 +22,7 @@ export interface ApiResponse<T> {
   error?: string;
 }
 
+export * from './inventory';
 export * from './alerts';
 // User Roles
 export enum UserRole {

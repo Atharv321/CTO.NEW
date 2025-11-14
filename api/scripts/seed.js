@@ -1,3 +1,352 @@
+const { prisma } = require('../lib/prisma');
+
+const seedData = async () => {
+  try {
+    console.log('Starting database seeding...');
+
+    // Create services
+    const services = await Promise.all([
+      prisma.service.create({
+        data: {
+          name: 'Classic Haircut',
+          description: 'Standard haircut with scissors and clippers',
+          duration: 30,
+          price: 25.00
+        }
+      }),
+      prisma.service.create({
+        data: {
+          name: 'Beard Trim',
+          description: 'Professional beard trimming and shaping',
+          duration: 15,
+          price: 15.00
+        }
+      }),
+      prisma.service.create({
+        data: {
+          name: 'Haircut & Beard',
+          description: 'Complete haircut and beard trim package',
+          duration: 45,
+          price: 35.00
+        }
+      }),
+      prisma.service.create({
+        data: {
+          name: 'Kids Haircut',
+          description: 'Haircut for children under 12',
+          duration: 25,
+          price: 20.00
+        }
+      }),
+      prisma.service.create({
+        data: {
+          name: 'Senior Style',
+          description: 'Haircut for seniors 65+',
+          duration: 30,
+          price: 18.00
+        }
+      })
+    ]);
+
+    console.log('Created services:', services.length);
+
+    // Create barbers
+    const barbers = await Promise.all([
+      prisma.barber.create({
+        data: {
+          name: 'John Smith',
+          email: 'john@barbershop.com',
+          phone: '+1-555-0101',
+          bio: 'Experienced barber with 10+ years in classic cuts'
+        }
+      }),
+      prisma.barber.create({
+        data: {
+          name: 'Maria Garcia',
+          email: 'maria@barbershop.com',
+          phone: '+1-555-0102',
+          bio: 'Specialist in modern styles and fades'
+        }
+      }),
+      prisma.barber.create({
+        data: {
+          name: 'David Chen',
+          email: 'david@barbershop.com',
+          phone: '+1-555-0103',
+          bio: 'Expert in traditional Asian barbering techniques'
+        }
+      })
+    ]);
+
+    console.log('Created barbers:', barbers.length);
+
+    // Create availability for each barber
+    const availabilityPromises = [];
+    
+    for (const barber of barbers) {
+      // Monday - Friday: 9 AM - 6 PM
+      for (let day = 1; day <= 5; day++) {
+        availabilityPromises.push(
+          prisma.availability.create({
+            data: {
+              barberId: barber.id,
+              dayOfWeek: day,
+              startTime: '09:00',
+              endTime: '18:00'
+            }
+          })
+        );
+      }
+      
+      // Saturday: 8 AM - 4 PM
+      availabilityPromises.push(
+        prisma.availability.create({
+          data: {
+            barberId: barber.id,
+            dayOfWeek: 6,
+            startTime: '08:00',
+            endTime: '16:00'
+          }
+        })
+      );
+      
+      // Sunday: Closed (no availability)
+    }
+
+    await Promise.all(availabilityPromises);
+    console.log('Created availability schedules');
+
+    // Create sample customers
+    const customers = await Promise.all([
+      prisma.customer.create({
+        data: {
+          name: 'Alice Johnson',
+          email: 'alice.johnson@email.com',
+          phone: '+1-555-1001'
+        }
+      }),
+      prisma.customer.create({
+        data: {
+          name: 'Bob Wilson',
+          email: 'bob.wilson@email.com',
+          phone: '+1-555-1002'
+        }
+      }),
+      prisma.customer.create({
+        data: {
+          name: 'Charlie Brown',
+          email: 'charlie.brown@email.com',
+          phone: '+1-555-1003'
+        }
+      }),
+      prisma.customer.create({
+        data: {
+          name: 'Diana Prince',
+          email: 'diana.prince@email.com',
+          phone: '+1-555-1004'
+        }
+      }),
+      prisma.customer.create({
+        data: {
+          name: 'Edward Norton',
+          email: 'edward.norton@email.com',
+          phone: '+1-555-1005'
+        }
+      })
+    ]);
+
+    console.log('Created customers:', customers.length);
+
+    // Create some sample bookings for the past and future
+    const now = new Date();
+    const bookings = [];
+
+    // Past bookings (completed)
+    for (let i = 0; i < 5; i++) {
+      const pastDate = new Date(now);
+      pastDate.setDate(pastDate.getDate() - (i + 1));
+      pastDate.setHours(10 + i, 0, 0, 0);
+      
+      const endTime = new Date(pastDate);
+      endTime.setMinutes(endTime.getMinutes() + services[0].duration);
+
+      bookings.push(
+        prisma.booking.create({
+          data: {
+            customerId: customers[i].id,
+            barberId: barbers[i % barbers.length].id,
+            serviceId: services[0].id,
+            startTime: pastDate,
+            endTime: endTime,
+            status: 'COMPLETED',
+            notes: 'Regular customer'
+          }
+        })
+      );
+    }
+
+    // Future bookings (confirmed)
+    for (let i = 0; i < 3; i++) {
+      const futureDate = new Date(now);
+      futureDate.setDate(futureDate.getDate() + (i + 1));
+      futureDate.setHours(14 + i, 0, 0, 0);
+      
+      const endTime = new Date(futureDate);
+      endTime.setMinutes(endTime.getMinutes() + services[i % services.length].duration);
+
+      bookings.push(
+        prisma.booking.create({
+          data: {
+            customerId: customers[i].id,
+            barberId: barbers[(i + 1) % barbers.length].id,
+            serviceId: services[i % services.length].id,
+            startTime: futureDate,
+            endTime: endTime,
+            status: 'CONFIRMED',
+            notes: 'Future appointment'
+          }
+        })
+      );
+    }
+
+    await Promise.all(bookings);
+    console.log('Created sample bookings:', bookings.length);
+
+    console.log('Database seeding completed successfully!');
+    console.log('\nSummary:');
+    console.log(`- Services: ${services.length}`);
+    console.log(`- Barbers: ${barbers.length}`);
+    console.log(`- Customers: ${customers.length}`);
+    console.log(`- Bookings: ${bookings.length}`);
+    console.log(`- Availability schedules: ${availabilityPromises.length}`);
+
+  } catch (error) {
+    console.error('Error seeding database:', error);
+    throw error;
+  }
+};
+
+// Run seeding if called directly
+if (require.main === module) {
+  seedData()
+    .then(() => {
+      console.log('Seeding completed');
+      process.exit(0);
+    })
+    .catch((error) => {
+      console.error('Seeding failed:', error);
+      process.exit(1);
+    });
+}
+
+module.exports = { seedData };
+const bcrypt = require('bcrypt');
+const db = require('../src/db');
+const { runMigrations } = require('../src/db/migrations');
+
+async function seed() {
+  try {
+    console.log('Running migrations...');
+    await runMigrations();
+
+    console.log('Seeding database...');
+
+    // Create admin user
+    const passwordHash = await bcrypt.hash('admin123', 10);
+    const adminResult = await db.query(
+      `INSERT INTO admins (email, password_hash, name) 
+       VALUES ($1, $2, $3) 
+       ON CONFLICT (email) DO NOTHING
+       RETURNING id`,
+      ['admin@barbershop.com', passwordHash, 'Admin User']
+    );
+
+    if (adminResult.rows.length > 0) {
+      console.log('✓ Created admin user (email: admin@barbershop.com, password: admin123)');
+    } else {
+      console.log('✓ Admin user already exists');
+    }
+
+    // Create barbers
+    const barber1 = await db.query(
+      `INSERT INTO barbers (name, email, phone, active) 
+       VALUES ($1, $2, $3, $4) 
+       ON CONFLICT (email) DO NOTHING
+       RETURNING id`,
+      ['Mike Johnson', 'mike@barbershop.com', '555-0101', true]
+    );
+
+    const barber2 = await db.query(
+      `INSERT INTO barbers (name, email, phone, active) 
+       VALUES ($1, $2, $3, $4) 
+       ON CONFLICT (email) DO NOTHING
+       RETURNING id`,
+      ['Sarah Williams', 'sarah@barbershop.com', '555-0102', true]
+    );
+
+    console.log('✓ Created barbers');
+
+    // Create services
+    const services = [
+      ['Haircut', 'Standard haircut with wash and styling', 30, 25.00],
+      ['Beard Trim', 'Professional beard trim and shaping', 20, 15.00],
+      ['Haircut & Beard', 'Complete haircut and beard service', 45, 35.00],
+      ['Kids Haircut', 'Haircut for children under 12', 20, 18.00],
+      ['Hot Towel Shave', 'Traditional hot towel shave', 30, 30.00],
+    ];
+
+    for (const [name, description, duration, price] of services) {
+      await db.query(
+        `INSERT INTO services (name, description, duration_minutes, price, active)
+         VALUES ($1, $2, $3, $4, $5)
+         ON CONFLICT DO NOTHING`,
+        [name, description, duration, price, true]
+      );
+    }
+
+    console.log('✓ Created services');
+
+    // Create availability templates for barbers (if we have barber IDs)
+    if (barber1.rows.length > 0 && barber2.rows.length > 0) {
+      const barberId1 = barber1.rows[0].id;
+      const barberId2 = barber2.rows[0].id;
+
+      // Mike's availability (Monday-Friday, 9am-5pm)
+      for (let day = 1; day <= 5; day++) {
+        await db.query(
+          `INSERT INTO availability_templates (barber_id, day_of_week, start_time, end_time)
+           VALUES ($1, $2, $3, $4)
+           ON CONFLICT (barber_id, day_of_week, start_time) DO NOTHING`,
+          [barberId1, day, '09:00', '17:00']
+        );
+      }
+
+      // Sarah's availability (Tuesday-Saturday, 10am-6pm)
+      for (let day = 2; day <= 6; day++) {
+        await db.query(
+          `INSERT INTO availability_templates (barber_id, day_of_week, start_time, end_time)
+           VALUES ($1, $2, $3, $4)
+           ON CONFLICT (barber_id, day_of_week, start_time) DO NOTHING`,
+          [barberId2, day, '10:00', '18:00']
+        );
+      }
+
+      console.log('✓ Created availability templates');
+    }
+
+    console.log('\n✅ Database seeded successfully!');
+    console.log('\nYou can now login with:');
+    console.log('  Email: admin@barbershop.com');
+    console.log('  Password: admin123');
+    
+    process.exit(0);
+  } catch (error) {
+    console.error('Error seeding database:', error);
+    process.exit(1);
+  }
+}
+
+seed();
 const pool = require('../src/db/connection');
 
 async function seedDatabase() {

@@ -88,7 +88,7 @@ describe('LoginPage', () => {
     await userEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(mockAuthService.login).toHaveBeenCalledWith('test@example.com', 'password');
+      expect(mockAuthService.login).toHaveBeenCalledWith({ email: 'test@example.com', password: 'password' });
     });
   });
 
@@ -110,7 +110,7 @@ describe('LoginPage', () => {
       expect(screen.getByText(errorMessage)).toBeInTheDocument();
     });
 
-    expect(mockAuthService.login).toHaveBeenCalledWith('test@example.com', 'wrong-password');
+    expect(mockAuthService.login).toHaveBeenCalledWith({ email: 'test@example.com', password: 'wrong-password' });
   });
 
   it('should disable form while loading', async () => {

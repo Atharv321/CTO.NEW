@@ -5,27 +5,25 @@ WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
-COPY packages/ ../packages/
 COPY tsconfig.json ./
+COPY nest-cli.json ./
 
 # Install dependencies
 RUN npm ci
 
 # Copy source code
 COPY src/ ./src/
+COPY prisma/ ./prisma/
 
 # Build application
-RUN npm run build
+RUN npx tsc
 
 # Production stage
 FROM node:18-alpine AS runtime
 
-# Install dumb-init for proper signal handling
-RUN apk add --no-cache dumb-init
-
 # Create app user
 RUN addgroup -g 1001 -S nodejs
-RUN adduser -S analytics -u 1001
+RUN adduser -S api -u 1001
 
 WORKDIR /app
 
@@ -37,22 +35,23 @@ RUN npm ci --only=production && npm cache clean --force
 
 # Copy built application
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/prisma ./prisma
 
-# Change ownership to app user
-RUN chown -R analytics:nodejs /app
-USER analytics
+# Create logs directory
+RUN mkdir -p logs && chown -R api:nodejs /app
+
+USER api
 
 # Expose port
 EXPOSE 3000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
+  CMD node -e "require('http').get('http://localhost:3000/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
 
 # Set environment
 ENV NODE_ENV=production
 ENV API_PORT=3000
 
 # Start application
-ENTRYPOINT ["dumb-init", "--"]
-CMD ["node", "dist/index.js"]
+CMD ["node", "dist/main.js"]
