@@ -1,46 +1,4 @@
 {
-  "name": "barber-booking-monorepo",
-  "version": "0.0.1",
-  "private": true,
-  "description": "Barber booking system - API and customer UI",
-  "name": "supplier-management-monorepo",
-  "version": "0.0.1",
-  "private": true,
-  "description": "Supplier management system with purchase orders and notifications",
-  "packageManager": "pnpm@8.0.0",
-  "engines": {
-    "node": ">=18.0.0",
-    "pnpm": ">=8.0.0"
-  },
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
-  "scripts": {
-    "prepare": "husky install",
-    "dev": "pnpm -r --parallel run dev",
-    "build": "pnpm -r --filter ./apps --filter ./packages run build",
-    "test": "pnpm run test:unit && pnpm run test:e2e",
-    "test:unit": "pnpm -r run test",
-    "test:coverage": "pnpm -r run test:coverage",
-    "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui",
-    "test:e2e:debug": "playwright test --debug",
-    "seed:test-data": "tsx scripts/seed-test-data.ts",
-    "test": "pnpm -r run test",
-    "lint": "eslint . --ext .ts,.tsx,.js,.jsx",
-    "lint:fix": "pnpm run lint -- --fix",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
-    "type-check": "pnpm -r run type-check",
-    "clean": "pnpm -r run clean && rm -rf node_modules pnpm-lock.yaml"
-  },
-  "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^6.0.0",
-    "@typescript-eslint/parser": "^6.0.0",
-    "@playwright/test": "^1.40.0",
-    "eslint": "^8.0.0",
-    "eslint": "^8.0.0",
   "name": "inventory-barcode-scanner",
   "version": "1.0.0",
   "private": true,
@@ -60,9 +18,8 @@
   "dependencies": {
     "@zxing/library": "^0.20.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
     "react-dom": "^18.2.0",
-    "@zxing/library": "^0.20.0",
+    "react-router-dom": "^7.9.6",
     "recharts": "^2.8.0"
   },
   "devDependencies": {
@@ -72,38 +29,8 @@
     "@types/node": "^20.0.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
-    "@typescript-eslint/eslint-plugin": "^6.0.0",
-    "@typescript-eslint/parser": "^6.10.0",
-    "@vitejs/plugin-react": "^4.2.0",
-    "eslint": "^8.54.0",
-    "eslint-config-prettier": "^9.0.0",
-    "eslint-plugin-jsx-a11y": "^6.8.0",
-    "eslint-plugin-prettier": "^5.0.0",
-    "eslint-plugin-react": "^7.33.0",
-    "jsdom": "^23.0.0",
-    "prettier": "^3.0.0",
-    "typescript": "^5.3.0",
-    "vite": "^5.0.0",
-    "vitest": "^1.0.0",
-    "@vitest/ui": "^1.0.0"
-    "eslint-plugin-react": "^7.33.0",
-    "eslint-plugin-jsx-a11y": "^6.8.0",
-    "@typescript-eslint/parser": "^6.10.0",
-    "@typescript-eslint/eslint-plugin": "^6.10.0",
     "@types/react-router-dom": "^5.3.3",
-    "@zxing/library": "^0.20.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "^7.9.6"
-  },
-  "devDependencies": {
-    "@testing-library/jest-dom": "^6.1.0",
-    "@testing-library/react": "^14.1.0",
-    "@testing-library/user-event": "^14.5.0",
-    "@types/node": "^20.0.0",
-    "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.0",
-    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.10.0",
     "@typescript-eslint/parser": "^6.10.0",
     "@vitejs/plugin-react": "^4.2.0",
     "@vitest/ui": "^1.0.0",
@@ -112,19 +39,17 @@
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-jsx-a11y": "^6.8.0",
     "eslint-plugin-prettier": "^5.0.0",
-    "prettier": "^3.0.0"
-  },
-  "engines": {
-    "node": ">=18.0.0"
     "eslint-plugin-react": "^7.33.0",
     "jsdom": "^23.0.0",
     "postcss": "^8.5.6",
     "prettier": "^3.0.0",
-    "tsx": "^4.0.0",
-    "typescript": "^5.0.0"
     "tailwindcss": "^4.1.17",
+    "tsx": "^4.0.0",
     "typescript": "^5.3.0",
     "vite": "^5.0.0",
     "vitest": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
