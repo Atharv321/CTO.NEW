@@ -7,6 +7,7 @@ import {
   BookingConfirmation,
   ApiError,
 } from '@types/booking';
+import { DashboardData } from '@types/dashboard';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
@@ -78,6 +79,12 @@ class ApiClient {
 
   async cancelBooking(bookingId: string): Promise<void> {
     await this.client.delete(`/bookings/${bookingId}`);
+  }
+
+  // Analytics / Dashboard
+  async getDashboardData(): Promise<DashboardData> {
+    const response = await this.client.get('/analytics/dashboard');
+    return response.data;
   }
 }
 

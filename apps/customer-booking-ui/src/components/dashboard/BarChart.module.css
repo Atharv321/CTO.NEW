@@ -1,0 +1,125 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.chartWrapper {
+  width: 100%;
+  background: linear-gradient(180deg, rgba(239, 246, 255, 0.7) 0%, rgba(255, 255, 255, 0.98) 100%);
+  border-radius: 0.75rem;
+  padding: 1rem 1.5rem;
+  box-sizing: border-box;
+}
+
+.chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 1.5rem;
+  height: 100%;
+}
+
+.barGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  min-width: 40px;
+}
+
+.bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.6rem;
+  height: 100%;
+  width: 100%;
+}
+
+.bar {
+  flex: 1;
+  border-radius: 0.5rem 0.5rem 0.25rem 0.25rem;
+  position: relative;
+  transition: transform 0.3s ease;
+}
+
+.bar:hover {
+  transform: translateY(-4px);
+}
+
+.barTooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(30, 64, 175, 0.95);
+  color: white;
+  padding: 0.35rem 0.6rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.bar:hover .barTooltip {
+  opacity: 1;
+}
+
+.barLabel {
+  margin-top: 0.75rem;
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.legend {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  font-size: 0.85rem;
+  color: #4a5568;
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.75rem;
+  background: rgba(37, 99, 235, 0.08);
+  border-radius: 999px;
+}
+
+.legendColor {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.legendLabel {
+  white-space: nowrap;
+}
+
+.emptyState {
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+  background: white;
+  border-radius: 0.75rem;
+  border: 1px dashed rgba(37, 99, 235, 0.2);
+  color: #6b7280;
+  min-height: 200px;
+}
+
+@media (max-width: 768px) {
+  .chartWrapper {
+    padding: 1rem;
+  }
+
+  .chart {
+    gap: 1rem;
+  }
+
+  .barGroup {
+    min-width: 32px;
+  }
+}
