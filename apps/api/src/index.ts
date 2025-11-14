@@ -1,14 +1,9 @@
-import express from 'express';
+import app from './app';
+import { env } from './config/env';
 
-const app = express();
-const PORT = process.env.API_PORT || 3000;
-
-app.use(express.json());
-
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok' });
-});
-
-app.listen(PORT, () => {
-  console.log(`API server running on port ${PORT}`);
+app.listen(env.port, () => {
+  if (env.nodeEnv !== 'test') {
+    // eslint-disable-next-line no-console
+    console.log(`API server running on port ${env.port}`);
+  }
 });
