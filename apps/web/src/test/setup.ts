@@ -1,6 +1,15 @@
 import '@testing-library/jest-dom';
 import { expect, afterEach, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
+
+afterEach(() => {
+  cleanup();
+});
+
+// Mock window.matchMedia
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: vi.fn().mockImplementation(query => ({
 import * as matchers from '@testing-library/jest-dom/matchers';
 
 expect.extend(matchers);

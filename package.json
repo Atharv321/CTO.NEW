@@ -1,4 +1,8 @@
 {
+  "name": "barber-booking-monorepo",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Barber booking system - API and customer UI",
   "name": "supplier-management-monorepo",
   "version": "0.0.1",
   "private": true,
@@ -8,10 +12,21 @@
     "node": ">=18.0.0",
     "pnpm": ">=8.0.0"
   },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "prepare": "husky install",
     "dev": "pnpm -r --parallel run dev",
     "build": "pnpm -r --filter ./apps --filter ./packages run build",
+    "test": "pnpm run test:unit && pnpm run test:e2e",
+    "test:unit": "pnpm -r run test",
+    "test:coverage": "pnpm -r run test:coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --debug",
+    "seed:test-data": "tsx scripts/seed-test-data.ts",
     "test": "pnpm -r run test",
     "lint": "eslint . --ext .ts,.tsx,.js,.jsx",
     "lint:fix": "pnpm run lint -- --fix",
@@ -23,6 +38,8 @@
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
+    "@playwright/test": "^1.40.0",
+    "eslint": "^8.0.0",
     "eslint": "^8.0.0",
   "name": "inventory-barcode-scanner",
   "version": "1.0.0",
@@ -66,6 +83,8 @@
     "jsdom": "^23.0.0",
     "postcss": "^8.5.6",
     "prettier": "^3.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
     "tailwindcss": "^4.1.17",
     "typescript": "^5.3.0",
     "vite": "^5.0.0",
