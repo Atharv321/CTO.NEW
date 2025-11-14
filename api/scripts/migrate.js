@@ -1,15 +1,25 @@
-const url = process.env.DATABASE_URL || 'postgresql://localhost:5432/appdb';
+const { prisma } = require('../lib/prisma');
 
-const sanitize = (connectionString) => {
+const runMigrations = async () => {
   try {
-    const parsed = new URL(connectionString);
-    if (parsed.password) {
-      parsed.password = '***';
-    }
-    return parsed.toString();
+    console.log('Running database migrations...');
+    
+    // Generate Prisma client
+    const { execSync } = require('child_process');
+    execSync('npx prisma generate', { stdio: 'inherit' });
+    
+    // Run migrations
+    execSync('npx prisma migrate deploy', { stdio: 'inherit' });
+    
+    console.log('Migrations completed successfully');
   } catch (error) {
-    return 'unknown-database';
+    console.error('Migration failed:', error);
+    process.exit(1);
   }
 };
 
-console.log(`Running migrations against ${sanitize(url)} (placeholder).`);
+if (require.main === module) {
+  runMigrations();
+}
+
+module.exports = { runMigrations };
