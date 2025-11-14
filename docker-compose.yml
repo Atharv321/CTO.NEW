@@ -1,18 +1,6 @@
 version: '3.8'
 
 services:
-  db:
-    image: postgres:15-alpine
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-devuser}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-devpassword}
-      POSTGRES_DB: ${POSTGRES_DB:-appdb}
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-devuser}"]
   # PostgreSQL Database
   postgres:
     image: postgres:15-alpine
@@ -39,10 +27,10 @@ services:
       - "3001:3001"
     environment:
       PORT: 3001
-      DATABASE_URL: postgresql://${POSTGRES_USER:-devuser}:${POSTGRES_PASSWORD:-devpassword}@db:5432/${POSTGRES_DB:-appdb}
+      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/${DB_NAME:-monorepo}
       NODE_ENV: development
     depends_on:
-      db:
+      postgres:
         condition: service_healthy
     volumes:
       - ./api:/app
@@ -66,8 +54,6 @@ services:
       - /app/node_modules
     command: sh -c "npm install && npm run dev"
 
-volumes:
-  postgres_data:
   # Redis Cache
   redis:
     image: redis:7-alpine
@@ -81,24 +67,6 @@ volumes:
       interval: 10s
       timeout: 5s
       retries: 5
-
-  # API Service (placeholder)
-  # Uncomment when ready to containerize the API
-  # api:
-  #   build:
-  #     context: ./apps/api
-  #     dockerfile: Dockerfile
-  #   container_name: monorepo-api
-  #   ports:
-  #     - "${API_PORT:-3000}:3000"
-  #   environment:
-  #     DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/${DB_NAME:-monorepo}
-  #     REDIS_URL: redis://redis:6379
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #     redis:
-  #       condition: service_healthy
 
 volumes:
   postgres_data:
