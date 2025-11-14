@@ -1,13 +1,24 @@
 const express = require('express');
 const cors = require('cors');
+require('dotenv').config();
+
+const categoriesRouter = require('./src/routes/categories');
+const itemsRouter = require('./src/routes/items');
+const stockRouter = require('./src/routes/stock');
 
 const createApp = () => {
   const app = express();
 
   app.use(cors());
+  app.use(express.json());
+
   app.get('/health', (req, res) => {
     res.json({ status: 'OK' });
   });
+
+  app.use('/api/categories', categoriesRouter);
+  app.use('/api/items', itemsRouter);
+  app.use('/api/stock', stockRouter);
 
   return app;
 };
