@@ -1,4 +1,6 @@
 import express from 'express';
+import { getNotificationWorker } from '@shared/utils';
+import alertsRouter from './routes/alerts';
 // Types would be imported from shared package in production
 // For now, defining basic types inline
 interface User {
@@ -177,6 +179,9 @@ app.use(simulateAuth);
 // Body parsing
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// Routes
+app.use('/api/alerts', alertsRouter);
 
 // Health check
 app.get('/health', (req, res) => {
@@ -420,8 +425,13 @@ app.post('/api/export/purchase-orders', (req, res) => {
   });
 });
 
+// Start notification worker
+const worker = getNotificationWorker();
+worker.start();
+
 app.listen(PORT, () => {
   console.log(`API server running on port ${PORT}`);
+  console.log(`Notification worker started`);
 // 404 handler
 app.use('*', (req, res) => {
   res.status(404).json({ success: false, error: 'Endpoint not found' });
