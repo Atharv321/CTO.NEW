@@ -1,3 +1,5 @@
+require('dotenv').config();
+const { runMigrations } = require('../src/db/migrations');
 const { Client } = require('pg');
 const fs = require('fs');
 const path = require('path');
@@ -22,6 +24,17 @@ const sanitize = (connectionString) => {
   }
 };
 
+console.log(`Running migrations against ${sanitize(url)}`);
+
+runMigrations()
+  .then(() => {
+    console.log('Migrations completed successfully');
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error('Migration failed:', error);
+    process.exit(1);
+  });
 async function runMigrations() {
   const client = new Client({ connectionString: url });
   
