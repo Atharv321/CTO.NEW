@@ -1,6 +1,10 @@
 {
   "extends": "../../.eslintrc.json",
   "env": {
-    "node": true
+    "node": true,
+    "es2022": true
+  },
+  "parserOptions": {
+    "project": "./tsconfig.json"
   }
 }
