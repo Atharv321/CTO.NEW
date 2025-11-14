@@ -1,23 +1,34 @@
 # Barber Booking System
 
-A comprehensive barber booking platform with customer-facing UI and backend API.
+A comprehensive barber booking platform with customer-facing UI, web application, and backend API.
 
 ## Project Structure
 
 ```
 ├── apps/
-│   └── customer-booking-ui/     # Next.js customer-facing application
+│   ├── customer-booking-ui/     # Next.js customer-facing application
+│   └── web/                     # Vite + React main web application
 ├── packages/
-│   └── shared/                   # Shared types and utilities
+│   └── shared/                   # Shared types and utilities (future)
 └── package.json                  # Root monorepo package
 ```
 
 ## Technologies
 
-- **Frontend**: Next.js 14, React 18, TypeScript
+### Customer Booking UI
+- **Framework**: Next.js 14, React 18, TypeScript
 - **State Management**: TanStack React Query v5
 - **Forms**: React Hook Form with Zod validation
 - **Styling**: CSS Modules with mobile-responsive design
+- **API Client**: Axios
+
+### Web Application
+- **Framework**: Vite 5 + React 18 + TypeScript
+- **UI Library**: Mantine UI 7
+- **State Management**: Zustand + TanStack React Query v5
+- **Routing**: React Router v6
+- **Testing**: Vitest + React Testing Library
+- **Documentation**: Storybook 7
 - **API Client**: Axios
 
 ## Getting Started
@@ -161,9 +172,59 @@ The application uses CSS Modules for component styling with:
 5. **Mobile First**: Responsive design starts from mobile screens
 6. **Type Safety**: Full TypeScript coverage
 
+## Web Application
+
+The main web application is located at `apps/web/` and built with Vite for optimal development experience.
+
+### Features
+
+- **Modern Stack**: Vite 5 for lightning-fast HMR and optimal build performance
+- **UI Components**: Mantine UI 7 with comprehensive component library
+- **State Management**: Hybrid approach with Zustand for global state and React Query for server state
+- **Routing**: React Router v6 for client-side navigation
+- **Type Safety**: Full TypeScript support with strict mode
+- **Testing**: Vitest + React Testing Library for unit and integration tests
+- **Documentation**: Storybook 7 for component development and documentation
+- **Code Quality**: ESLint + Prettier for consistent code style
+
+### Quick Start
+
+```bash
+cd apps/web
+
+# Install dependencies (if not already installed)
+npm install
+
+# Start development server
+npm run dev
+
+# Run tests
+npm run test
+
+# Run linting
+npm run lint
+
+# Type checking
+npm run type-check
+
+# Build for production
+npm run build
+
+# Run Storybook
+npm run storybook
+```
+
+### Architecture
+
+- **Path Aliases**: Configured for clean imports (`@/`, `@components/`, `@lib/`, etc.)
+- **API Client**: Centralized Axios instance with interceptors
+- **Theme System**: Customizable Mantine theme
+- **Environment Config**: `.env` based configuration with TypeScript support
+
+For detailed documentation, see [apps/web/README.md](apps/web/README.md)
+
 ## Future Enhancements
 
-- [ ] Storybook component documentation
 - [ ] Playwright E2E tests
 - [ ] Payment integration
 - [ ] Calendar widget
@@ -171,6 +232,7 @@ The application uses CSS Modules for component styling with:
 - [ ] Booking management page
 - [ ] Analytics tracking
 - [ ] Multi-language support
+- [ ] Mobile applications (React Native)
 
 ## License
 
